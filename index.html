@@ -874,16 +874,45 @@ async function exportExcel(){
     const noteKo = buildNoteKo(checks);
     const noteEn = buildNoteEn(checks);
 
+    // 방향 레이블 (C16, C21용)
+    const dirLabel0 = dirs[0] === 'MD' ? '세로\n(Length)' : dirs[0] === 'TD' ? '가로\n(Width)' : '';
+    const dirLabel1 = dirs[1] === 'TD' ? '가로\n(Width)' : dirs[1] === 'MD' ? '세로\n(Length)' : '';
+
+    // MD+TD 두 번째 방향 데이터
+    const stateArr2 = [], heatArr2 = [];
+    if(dirs.length > 1){
+      for(let i = 1; i <= 5; i++){
+        const sKey2 = 'state_' + dirs[1];
+        const hKey2 = 'heat_'  + dirs[1];
+        const sd2 = (raw.mdata.state[sKey2] || {})[i] || {};
+        const hd2 = (raw.mdata.heat[hKey2]  || {})[i] || {};
+        stateArr2.push({ dist: sd2.dist||'', time: sd2.time||'', thick: g('thickness'), se: sd2.se||false });
+        heatArr2.push({  dist: hd2.dist||'', time: hd2.time||'', thick: g('thickness'), se: hd2.se||false });
+      }
+    }
+
+    // 사진 리사이즈
+    const processedPhotos = await Promise.all(raw.photos.map(async ph => {
+      if(!ph.data) return ph;
+      return {...ph, data: await resizeImage(ph.data, 600, 450)};
+    }));
+
     const payload = {
       accNo:         g('accNo'),
       prodName:      g('prodName'),
       tester:        g('tester'),
       labDate:       g('labDate') || g('testDate'),
+      method:        g('method'),
       equipment:     g('equipment'),
       roomTemp:      g('roomTemp'),
       roomHumid:     g('roomHumid'),
+      dir:           dir,
+      dirLabel0:     dirLabel0,
+      dirLabel1:     dirLabel1,
       state:         stateArr,
       heat:          heatArr,
+      state2:        stateArr2,
+      heat2:         heatArr2,
       activeState:   raw.activeTypes.state,
       activeHeat:    raw.activeTypes.heat,
       stateVerdict:  verdicts.state === 'pass' ? '합 격(Pass)' :
@@ -895,6 +924,7 @@ async function exportExcel(){
       remark:        g('stateThickNote') ?
                      `상태 시험편 두께 : ${g('stateThickNote')} mm / Heat aging : ${g('heatThickNote')||g('stateThickNote')} mm` : '',
       lang:          raw.lang,
+      photos:        processedPhotos,
     };
 
     // ── GAS 호출 ───────────────────────────────────────────────────────────

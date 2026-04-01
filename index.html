@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>연소성 시험 분석표</title>
+<style>
+:root {
+  --bg:#f0f2f5; --s:#fff; --s2:#f6f8fa; --s3:#eef0f3;
+  --bd:#e1e4e8; --bd2:#c9cdd4; --bd3:#9ba3af;
+  --tx:#111827; --tx2:#374151; --tx3:#6b7280;
+  --ac:#1a56db; --acl:#eff5ff; --acd:#1341b0;
+  --gr:#0a7a42; --grl:#e8f7ef;
+  --rd:#b91c1c; --rdl:#fef2f2;
+  --or:#c2410c; --orl:#fff7ed;
+  --r:10px; --rs:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);font-family:'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;font-size:14px;color:var(--tx);min-height:100vh;}
+
+/* HEADER */
+.hdr{background:var(--s);border-bottom:1px solid var(--bd);padding:0 14px;position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;height:50px;}
+.hdr-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:6px;}
+.hdr-right{display:flex;gap:5px;align-items:center;}
+
+/* LANG SELECTOR */
+.lang-seg{display:flex;background:var(--s3);border:1px solid var(--bd);border-radius:20px;padding:2px;gap:1px;}
+.lang-btn{padding:3px 9px;border-radius:16px;font-size:11px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--tx3);transition:all .15s;}
+.lang-btn.on{background:var(--ac);color:#fff;}
+
+/* BUTTONS */
+.btn{padding:6px 11px;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--bd2);background:var(--s);color:var(--tx2);display:inline-flex;align-items:center;gap:4px;white-space:nowrap;transition:all .15s;}
+.btn:active{transform:scale(.97);}
+.btn-pr{background:var(--ac);color:#fff;border-color:var(--ac);}
+.btn-gr{background:var(--gr);color:#fff;border-color:var(--gr);}
+.btn-sm{padding:5px 9px;font-size:11px;}
+
+/* NAV */
+.nav{background:var(--s);border-bottom:1px solid var(--bd);display:flex;overflow-x:auto;}
+.nav-tab{padding:11px 16px;font-size:13px;font-weight:600;color:var(--tx3);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;}
+.nav-tab.on{color:var(--ac);border-bottom-color:var(--ac);}
+
+/* MAIN */
+.main{padding:10px;max-width:680px;margin:0 auto;}
+
+/* CARD */
+.card{background:var(--s);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:9px;overflow:hidden;}
+.card-hd{padding:10px 13px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.card-hd-l{display:flex;align-items:center;gap:7px;}
+.ctag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--acl);color:var(--ac);}
+.ctitle{font-size:13px;font-weight:700;}
+.chev{font-size:10px;color:var(--tx3);transition:transform .2s;}
+.card-bd{padding:12px 13px;}
+
+/* FIELDS */
+.fg{display:grid;gap:8px;}
+.g2{grid-template-columns:1fr 1fr;}
+.g3{grid-template-columns:1fr 1fr 1fr;}
+.full{grid-column:1/-1;}
+.f{display:flex;flex-direction:column;gap:3px;}
+.f label{font-size:11px;font-weight:700;color:var(--tx2);letter-spacing:.3px;}
+.f input,.f select,.f textarea{padding:7px 9px;border:1px solid var(--bd);border-radius:var(--rs);font-size:13px;background:var(--s);color:var(--tx);font-family:inherit;}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 3px rgba(26,86,219,.08);}
+.f textarea{min-height:52px;resize:vertical;}
+
+/* TYPE CARDS */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px;}
+.tc{border:1.5px solid var(--bd);border-radius:var(--rs);padding:9px 11px;cursor:pointer;transition:all .15s;position:relative;}
+.tc.on{border-color:var(--ac);background:var(--acl);}
+.tc-chk{position:absolute;top:7px;right:7px;width:17px;height:17px;border:1.5px solid var(--bd2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;}
+.tc.on .tc-chk{background:var(--ac);border-color:var(--ac);color:#fff;}
+.tc-title{font-size:13px;font-weight:700;}
+.tc-sub{font-size:10px;color:var(--tx3);margin-top:1px;}
+.tc.on .tc-title{color:var(--ac);}
+
+/* DIR PILLS */
+.dir-pills{display:flex;gap:5px;flex-wrap:wrap;}
+.dp{padding:4px 10px;border:1px solid var(--bd2);border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;color:var(--tx2);}
+.dp.on{background:var(--ac);border-color:var(--ac);color:#fff;}
+
+/* TABLE */
+.mt{width:100%;border-collapse:collapse;}
+.mt th{font-size:10px;font-weight:700;text-align:center;color:var(--tx2);padding:5px 2px;border-bottom:2px solid var(--bd);background:var(--s2);}
+.mt td{padding:2px 2px;border-bottom:1px solid var(--bd);text-align:center;}
+.mt tr:last-child td{border-bottom:none;}
+.mt input[type=number]{width:100%;padding:5px 3px;border:1px solid var(--bd);border-radius:5px;font-size:12px;text-align:center;background:var(--s);color:var(--tx);}
+.mt input:focus{outline:none;border-color:var(--ac);}
+.rate-cell{font-size:12px;font-weight:600;color:var(--ac);padding:5px 3px;background:var(--acl);border-radius:5px;display:block;}
+.se-t{padding:3px 6px;border:1px solid var(--bd2);border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;background:transparent;color:var(--tx3);}
+.se-t.on{background:var(--grl);border-color:var(--gr);color:var(--gr);}
+.row-no{font-size:12px;color:var(--tx3);font-weight:600;width:22px;}
+
+/* SUMMARY */
+.sumbar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;padding:9px 0;border-top:1px solid var(--bd);margin-top:7px;}
+.si{text-align:center;}
+.si-lbl{font-size:10px;font-weight:700;color:var(--tx3);margin-bottom:2px;}
+.si-val{font-size:15px;font-weight:700;}
+.ok{color:var(--gr);}
+.ng{color:var(--rd);}
+
+/* VERDICT */
+.vrow{display:flex;gap:7px;margin-top:9px;}
+.vbtn{flex:1;padding:10px;border:1.5px solid var(--bd2);border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;background:var(--s2);color:var(--tx2);}
+.vbtn.pass.on{background:var(--grl);border-color:var(--gr);color:var(--gr);}
+.vbtn.fail.on{background:var(--rdl);border-color:var(--rd);color:var(--rd);}
+
+/* CHECKLIST */
+.cs-title{font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:6px;letter-spacing:.3px;}
+.cl{display:flex;flex-direction:column;gap:3px;margin-bottom:10px;}
+.ci{display:flex;align-items:flex-start;gap:7px;padding:7px 9px;border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;background:var(--s);}
+.ci:active{transform:scale(.99);}
+.ci.on{background:var(--acl);border-color:var(--ac);}
+.ci-box{width:15px;height:15px;min-width:15px;border:1.5px solid var(--bd2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;margin-top:2px;}
+.ci.on .ci-box{background:var(--ac);border-color:var(--ac);color:#fff;}
+.ci-txt{font-size:12px;color:var(--tx2);line-height:1.4;}
+.ci.on .ci-txt{color:var(--ac);font-weight:600;}
+.ci-sub{font-size:10px;color:var(--tx3);display:block;margin-top:1px;}
+
+/* PHOTO */
+.photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ps{border:1.5px dashed var(--bd2);border-radius:var(--rs);min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;background:var(--s2);}
+.ps.has{border-style:solid;border-color:var(--ac);padding:0;}
+.ps img{width:100%;height:130px;object-fit:cover;display:block;}
+.ps-lbl{font-size:11px;font-weight:700;color:var(--tx2);margin-top:5px;}
+.ps-sub{font-size:10px;color:var(--tx3);}
+.ps-add{font-size:10px;color:var(--ac);font-weight:600;margin-top:3px;}
+.ps-icon{font-size:22px;opacity:.35;}
+.ps-rm{position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,.55);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;cursor:pointer;border:none;}
+.ps-cam{position:absolute;bottom:4px;right:4px;width:26px;height:26px;background:var(--ac);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;border:none;}
+.ps-cap{width:100%;padding:4px 7px;border:none;border-top:1px solid var(--bd);font-size:11px;background:rgba(255,255,255,.9);color:var(--tx);}
+
+/* CAMERA MODAL */
+.cam-modal{position:fixed;inset:0;background:#000;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.cam-modal video{width:100%;max-height:60vh;object-fit:cover;}
+.cam-ctrl{display:flex;gap:12px;align-items:center;justify-content:center;padding:20px;}
+.cam-shutter{width:64px;height:64px;background:#fff;border-radius:50%;border:4px solid #ccc;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;}
+.cam-cancel{padding:10px 20px;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:20px;font-size:13px;cursor:pointer;}
+.cam-label{color:#fff;font-size:13px;font-weight:600;padding-top:10px;}
+.cam-switch{position:absolute;top:16px;right:16px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.3);color:#fff;padding:7px 12px;border-radius:20px;font-size:12px;cursor:pointer;}
+canvas#snapCanvas{display:none;}
+
+/* HISTORY */
+.hl{display:flex;flex-direction:column;gap:6px;}
+.hi{background:var(--s);border:1px solid var(--bd);border-radius:var(--rs);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.hi:hover{border-color:var(--ac);}
+.hi-acc{font-size:13px;font-weight:700;}
+.hi-meta{font-size:11px;color:var(--tx3);margin-top:2px;}
+.hi-badges{display:flex;gap:3px;flex-direction:column;align-items:flex-end;}
+.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;}
+.b-p{background:var(--grl);color:var(--gr);}
+.b-f{background:var(--rdl);color:var(--rd);}
+.b-n{background:var(--s3);color:var(--tx3);}
+.empty{text-align:center;padding:36px;color:var(--tx3);font-size:13px;}
+
+/* FOOTER */
+.footer{position:sticky;bottom:0;background:var(--s);border-top:1px solid var(--bd);padding:9px 13px;display:flex;gap:7px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:75px;left:50%;transform:translateX(-50%) scale(.9);background:#111827;color:#fff;padding:9px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) scale(1);}
+
+.divider{height:1px;background:var(--bd);margin:9px 0;}
+.snote{font-size:11px;color:var(--tx2);background:var(--s3);border-left:3px solid var(--ac);padding:7px 9px;border-radius:0 4px 4px 0;margin-bottom:9px;line-height:1.5;}
+.dir-badge{font-size:10px;padding:1px 7px;border-radius:20px;background:var(--orl);color:var(--or);font-weight:700;}
+.ds-title{font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:5px;display:flex;align-items:center;gap:5px;text-transform:uppercase;}
+.hidden{display:none!important;}
+
+/* loading overlay */
+.loading{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+.loading-spin{width:40px;height:40px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+.loading-txt{color:#fff;font-size:14px;font-weight:600;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+@media(max-width:420px){.g3{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-title">🔥 <span id="hTitle">연소성 분석표</span></div>
+  <div class="hdr-right">
+    <div class="lang-seg">
+      <button class="lang-btn on" onclick="setLang('ko')">국문</button>
+      <button class="lang-btn" onclick="setLang('en')">영문</button>
+      <button class="lang-btn" onclick="setLang('koen')">국영문</button>
+    </div>
+  </div>
+</div>
+
+<div class="nav">
+  <div class="nav-tab on" onclick="showView('form')" id="nForm">✏️ <span id="n1">입력</span></div>
+  <div class="nav-tab" onclick="showView('history')" id="nHist">📋 <span id="n2">기록</span></div>
+</div>
+
+<!-- ═══ FORM VIEW ═══════════════════════════════════════════════════════════ -->
+<div id="formView">
+<div class="main">
+
+<!-- 기본정보 -->
+<div class="card">
+  <div class="card-hd" onclick="tog(this)">
+    <div class="card-hd-l"><span class="ctag" id="t_basic">기본</span><span class="ctitle" id="t_basicTitle">기본 정보</span></div>
+    <span class="chev">▾</span>
+  </div>
+  <div class="card-bd">
+    <div class="fg g2">
+      <div class="f full"><label id="l_acc">접수번호</label><input type="text" id="accNo" placeholder="W220-25-00000"></div>
+      <div class="f"><label id="l_date">시험일</label><input type="date" id="testDate"></div>
+      <div class="f"><label id="l_tester">시험자</label><input type="text" id="tester"></div>
+      <div class="f full"><label id="l_prod">품명</label><input type="text" id="prodName"></div>
+      <div class="f full"><label id="l_method">시험방법</label>
+        <select id="method"><option>MS300-08 : Rev.13</option><option>MS300-08 : Rev.12</option><option id="l_other">기타</option></select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 시험조건 -->
+<div class="card">
+  <div class="card-hd" onclick="tog(this)">
+    <div class="card-hd-l"><span class="ctag" id="t_cond">조건</span><span class="ctitle" id="t_condTitle">◎ 시험조건 (Test condition)</span></div>
+    <span class="chev">▾</span>
+  </div>
+  <div class="card-bd">
+    <div class="cl" id="condChecks">
+      <div class="ci on" onclick="chk(this)" data-key="cond_state">
+        <div class="ci-box">✓</div>
+        <div class="ci-txt">
+          <span id="cc_state_ko">상태 : (21 ± 5)℃, 상대습도 (55 ± 5) % 에서 적어도 24시간 상태조절 후 시험</span>
+          <span class="ci-sub" id="cc_state_en">State : (21 ± 5) ℃, (55 ± 5) % R.H., for minimum of 24 h</span>
+        </div>
+      </div>
+      <div class="ci on" onclick="chk(this)" data-key="cond_heat">
+        <div class="ci-box">✓</div>
+        <div class="ci-txt">
+          <span id="cc_heat_ko">고온방치 : (80 ± 3) ℃의 건조로에서 168 시간 노화 후 24 시간 동안 상태조절 후 시험</span>
+          <span class="ci-sub" id="cc_heat_en">Heat aging : After aging in (80 ± 3) ℃ oven for 168 h, conditioned for 24 h.</span>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="fg g2" style="margin-top:9px;">
+      <div class="f"><label id="l_statePeriod">상태조절 기간</label><input type="text" id="statePeriod" placeholder="2025.11.03~2025.11.04"></div>
+      <div class="f"><label id="l_heatPeriod">고온방치 기간</label><input type="text" id="heatPeriod" placeholder="2025.10.27~2025.11.03"></div>
+      <div class="f"><label id="l_roomTemp">시험실 온도</label><input type="text" id="roomTemp" value="( 21 ± 5 ) ℃"></div>
+      <div class="f"><label id="l_roomHumid">시험실 상대습도</label><input type="text" id="roomHumid" value="( 55 ± 5 ) %"></div>
+      <div class="f"><label id="l_labDate">시험일 (시험실)</label><input type="date" id="labDate"></div>
+      <div class="f"><label id="l_equip">시험기기</label>
+        <select id="equipment">
+          <option value="">-- 장비 선택 --</option>
+          <option value="(BAAA-240012) 수평연소성시험기">BAAA-240012 수평연소성시험기</option>
+          <option value="(BTCA-120004) 수평연소성시험기">BTCA-120004 수평연소성시험기</option>
+          <option value="(BTCA-160030) 연소성시험기">BTCA-160030 연소성시험기</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 측정 데이터 -->
+<div class="card">
+  <div class="card-hd" onclick="tog(this)">
+    <div class="card-hd-l"><span class="ctag" id="t_meas">측정</span><span class="ctitle" id="t_measTitle">1) 연 소 성 (Flammability)</span></div>
+    <span class="chev">▾</span>
+  </div>
+  <div class="card-bd">
+    <div class="snote" id="snote1">시험 유형을 선택하세요 (복수 선택 가능)</div>
+    <div class="type-grid">
+      <div class="tc on" id="tcState" onclick="togType('state')">
+        <div class="tc-chk">✓</div>
+        <div class="tc-title" id="tc_stateTitle">상태 (State)</div>
+        <div class="tc-sub">(21±5)℃, (55±5)% R.H.</div>
+      </div>
+      <div class="tc on" id="tcHeat" onclick="togType('heat')">
+        <div class="tc-chk">✓</div>
+        <div class="tc-title" id="tc_heatTitle">고온방치 (Heat aging)</div>
+        <div class="tc-sub">(80±3)℃, 168h</div>
+      </div>
+    </div>
+
+    <div class="fg g2" style="margin-bottom:10px;">
+      <div class="f">
+        <label id="l_dir">방향 (Direction)</label>
+        <div class="dir-pills" style="margin-top:4px;">
+          <span class="dp on" onclick="setDir('none',this)" id="dp0">방향없음</span>
+          <span class="dp" onclick="setDir('MD',this)">MD</span>
+          <span class="dp" onclick="setDir('TD',this)">TD</span>
+          <span class="dp" onclick="setDir('both',this)">MD+TD</span>
+        </div>
+      </div>
+      <div class="f"><label id="l_thick">시험편 두께 (mm)</label><input type="text" id="thickness" placeholder="3.0"></div>
+    </div>
+
+    <!-- 상태 -->
+    <div id="stateSection">
+      <div id="stateTableArea"></div>
+      <div class="sumbar">
+        <div class="si"><div class="si-lbl">Max. (mm/min)</div><div class="si-val" id="sMax">-</div></div>
+        <div class="si"><div class="si-lbl">Ave. (mm/min)</div><div class="si-val" id="sAve">-</div></div>
+        <div class="si"><div class="si-lbl" id="l_crit">기준 ≤80</div><div class="si-val" id="sCrit">-</div></div>
+      </div>
+      <div class="vrow">
+        <button class="vbtn pass" id="sPass" onclick="setV('state','pass')" data-ko="합격 (Pass)" data-en="Pass">합격 (Pass)</button>
+        <button class="vbtn fail" id="sFail" onclick="setV('state','fail')" data-ko="불합격 (Fail)" data-en="Fail">불합격 (Fail)</button>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <!-- 고온방치 -->
+    <div id="heatSection">
+      <div id="heatTableArea"></div>
+      <div class="sumbar">
+        <div class="si"><div class="si-lbl">Max. (mm/min)</div><div class="si-val" id="hMax">-</div></div>
+        <div class="si"><div class="si-lbl">Ave. (mm/min)</div><div class="si-val" id="hAve">-</div></div>
+        <div class="si"><div class="si-lbl" id="l_crit2">기준 ≤80</div><div class="si-val" id="hCrit">-</div></div>
+      </div>
+      <div class="vrow">
+        <button class="vbtn pass" id="hPass" onclick="setV('heat','pass')" data-ko="합격 (Pass)" data-en="Pass">합격 (Pass)</button>
+        <button class="vbtn fail" id="hFail" onclick="setV('heat','fail')" data-ko="불합격 (Fail)" data-en="Fail">불합격 (Fail)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 주사항 -->
+<div class="card">
+  <div class="card-hd" onclick="tog(this)">
+    <div class="card-hd-l"><span class="ctag" id="t_note">주사항</span><span class="ctitle" id="t_noteTitle">◎ 주사항 (Note)</span></div>
+    <span class="chev">▾</span>
+  </div>
+  <div class="card-bd" id="noteBody">
+    <div class="cs-title" id="cs1">기준 및 방법</div>
+    <div class="cl">
+      <div class="ci on" onclick="chk(this)" data-key="note_crit"><div class="ci-box">✓</div><div class="ci-txt"><span id="n_crit_ko">기준 : 연소속도(최대치) 80 mm/min 이하 또는 계측점으로부터 50 mm 이상 연소하지 않으면서 60 초 이내에 꺼져야 한다.</span><span class="ci-sub" id="n_crit_en">Requirement : Burning rate(Max.) ≤ 80 mm/min or extinguished within 50 mm, 60s</span></div></div>
+      <div class="ci" onclick="chk(this)" data-key="note_method"><div class="ci-box"></div><div class="ci-txt"><span id="n_method_ko">시험은 MS300-08 : Rev.13 방법으로 진행하였음.</span><span class="ci-sub" id="n_method_en">Test method : MS300-08 : Rev.13</span></div></div>
+      <div class="ci" onclick="chk(this)" data-key="note_state_only"><div class="ci-box"></div><div class="ci-txt"><span id="n_stonly_ko">의뢰자의 요청에 따라 상태에서만 시험하였음.</span><span class="ci-sub" id="n_stonly_en">Test was conducted only in the state by the client's request.</span></div></div>
+      <div class="ci" onclick="chk(this)" data-key="note_heat_only"><div class="ci-box"></div><div class="ci-txt"><span id="n_htonly_ko">의뢰자의 요청에 따라 고온방치에서만 시험하였음.</span><span class="ci-sub" id="n_htonly_en">Test was conducted only in the heat aging by the client's request.</span></div></div>
+    </div>
+    <div class="cs-title" id="cs2">시험 특이사항</div>
+    <div class="cl">
+      <div class="ci on" onclick="chk(this)" data-key="note_se"><div class="ci-box">✓</div><div class="ci-txt"><span id="n_se_ko">SE - 자기소화성</span><span class="ci-sub" id="n_se_en">SE = Self-extinguishing.</span></div></div>
+      <div class="ci on" onclick="chk(this)" data-key="note_5min"><div class="ci-box">✓</div><div class="ci-txt"><span id="n_5min_ko">연소시간이 5 분을 초과하여 5 분까지의 연소 길이를 측정하였음.</span><span class="ci-sub" id="n_5min_en">The test was discontinued after 5 min because burning time was exceed 5 min.</span></div></div>
+      <div class="ci" onclick="chk(this)" data-key="note_client_spec"><div class="ci-box"></div><div class="ci-txt"><span id="n_cs_ko">의뢰자가 제시한 시험편으로 시험하였음</span><span class="ci-sub" id="n_cs_en">The test was conducted with a specimen supplied by the client.</span></div></div>
+      <div class="ci" onclick="chk(this)" data-key="note_wire"><div class="ci-box"></div><div class="ci-txt"><span id="n_wire_ko">의뢰자 요청에 따라 철사부착구에 시료를 거치하였음</span><span class="ci-sub" id="n_wire_en">Specimens were placed on steel wire by the clients request.</span></div></div>
+      <div class="ci" onclick="chk(this)" data-key="note_release"><div class="ci-box"></div><div class="ci-txt"><span id="n_rel_ko">의뢰자의 요청에 따라 이형지 제거 후 시험하였음.</span><span class="ci-sub" id="n_rel_en">Test was conducted after removing the release paper by the clients request.</span></div></div>
+      <div class="ci" onclick="chk(this)" data-key="note_width"><div class="ci-box"></div><div class="ci-txt"><span id="n_width_ko">시험편 폭 : 25 mm 미만</span><span class="ci-sub" id="n_width_en">Specimen width : Below 25 mm</span></div></div>
+      <div class="ci" onclick="chk(this)" data-key="note_length"><div class="ci-box"></div><div class="ci-txt"><span id="n_length_ko">시험편 길이 : 293 mm 미만</span><span class="ci-sub" id="n_length_en">Specimen length : Below 293 mm</span></div></div>
+    </div>
+    <div class="cs-title" id="cs3">시험편 추가정보</div>
+    <div class="cl">
+      <div class="ci" onclick="chk(this)" data-key="note_qty"><div class="ci-box"></div><div class="ci-txt"><span id="n_qty_ko">표준 요구 수량 미만 제시하여 규정횟수 측정치 못했음</span><span class="ci-sub" id="n_qty_en">Fewer tests than specified were performed for lack of the submitted sample.</span></div></div>
+      <div class="ci" onclick="chk(this)" data-key="note_nondirec"><div class="ci-box"></div><div class="ci-txt"><span id="n_nd_ko">방향성 없는 시험편으로 시험하였음.</span><span class="ci-sub" id="n_nd_en">Test was conducted with non-directional specimen</span></div></div>
+      <div class="ci" onclick="chk(this)" data-key="note_nodiff"><div class="ci-box"></div><div class="ci-txt"><span id="n_nodiff_ko">방향별 연소속도의 차이가 없음.</span><span class="ci-sub" id="n_nodiff_en">No difference in burn rate by direction.</span></div></div>
+    </div>
+    <div class="fg g2" style="margin-top:8px;">
+      <div class="f"><label id="l_stThick">상태 시험편 두께</label><input type="text" id="stateThickNote" placeholder="3.0 mm"></div>
+      <div class="f"><label id="l_htThick">고온방치 시험편 두께</label><input type="text" id="heatThickNote" placeholder="3.0 mm"></div>
+    </div>
+    <div class="f" style="margin-top:8px;"><label id="l_memo">기타 메모</label><textarea id="memo" placeholder="추가 사항..."></textarea></div>
+  </div>
+</div>
+
+<!-- 사진 -->
+<div class="card">
+  <div class="card-hd" onclick="tog(this)">
+    <div class="card-hd-l"><span class="ctag" id="t_photo">사진</span><span class="ctitle" id="t_photoTitle">시험 사진 (Sheet2)</span></div>
+    <span class="chev">▾</span>
+  </div>
+  <div class="card-bd">
+    <div class="snote" id="snote_photo">📸 탭하면 카메라 촬영 또는 갤러리에서 선택. 엑셀 Sheet2에 자동 삽입됩니다.</div>
+    <div class="photo-grid" id="photoGrid"></div>
+  </div>
+</div>
+
+</div><!-- end main -->
+
+<div class="footer">
+  <button class="btn btn-pr" style="flex:1;" onclick="save()" id="saveBtn">💾 <span id="l_save">저장</span></button>
+  <button class="btn btn-gr" style="flex:1;" onclick="exportExcel()" id="exportBtn">⬇ <span id="l_export">엑셀 내보내기</span></button>
+  <button class="btn" onclick="resetForm()" id="resetBtn"><span id="l_reset">초기화</span></button>
+</div>
+</div><!-- formView -->
+
+<!-- ═══ HISTORY VIEW ═══════════════════════════════════════════════════════ -->
+<div id="historyView" class="hidden">
+<div class="main">
+  <div class="card">
+    <div class="card-bd">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-size:14px;font-weight:700;" id="l_hist">과거 기록</span>
+        <button class="btn btn-sm" onclick="showView('form')">← <span id="l_back">돌아가기</span></button>
+      </div>
+      <div id="histList"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ CAMERA MODAL ════════════════════════════════════════════════════════ -->
+<div class="cam-modal hidden" id="camModal">
+  <div class="cam-label" id="camLabel">시험 전 (상태)</div>
+  <video id="camVideo" autoplay playsinline></video>
+  <canvas id="snapCanvas"></canvas>
+  <button class="cam-switch" onclick="switchCam()">🔄 전환</button>
+  <div class="cam-ctrl">
+    <button class="cam-cancel" onclick="closeCam()">취소</button>
+    <button class="cam-shutter" onclick="snap()">📷</button>
+    <button class="cam-cancel" onclick="pickFile()">갤러리</button>
+  </div>
+  <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="onFile(event)">
+</div>
+
+<!-- ═══ LOADING ══════════════════════════════════════════════════════════ -->
+<div class="loading hidden" id="loadingOverlay">
+  <div class="loading-spin"></div>
+  <div class="loading-txt" id="loadingTxt">엑셀 생성 중...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONSTANTS & STATE ────────────────────────────────────────────────────────
+const N = 5;
+let lang = 'ko';
+let dir  = 'none';
+let activeTypes = {state:true, heat:true};
+let verdicts    = {state:null, heat:null};
+let mdata       = {state:{}, heat:{}};
+let photos = [
+  {id:'before_state', labelKo:'시험 전 (상태)', labelEn:'Before - State', data:null, caption:''},
+  {id:'after_state',  labelKo:'시험 후 (상태)', labelEn:'After - State',  data:null, caption:''},
+  {id:'before_heat',  labelKo:'시험 전 (고온)', labelEn:'Before - Heat',  data:null, caption:''},
+  {id:'after_heat',   labelKo:'시험 후 (고온)', labelEn:'After - Heat',   data:null, caption:''},
+];
+let records = [];
+try { records = JSON.parse(localStorage.getItem('flamV4')||'[]'); } catch(e){}
+
+// Camera state
+let camStream = null;
+let camFacing = 'environment';
+let currentPhotoIdx = null;
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.getElementById('testDate').value = today();
+document.getElementById('labDate').value  = today();
+renderPhotos();
+renderTables();
+
+function today(){ return new Date().toISOString().split('T')[0]; }
+function g(id){ return document.getElementById(id)?.value||''; }
+
+// ─── VIEWS ───────────────────────────────────────────────────────────────────
+function showView(v){
+  document.getElementById('formView').classList.toggle('hidden', v!=='form');
+  document.getElementById('historyView').classList.toggle('hidden', v!=='history');
+  document.getElementById('nForm').classList.toggle('on', v==='form');
+  document.getElementById('nHist').classList.toggle('on', v==='history');
+  if(v==='history') renderHistory();
+}
+
+// ─── LANG ─────────────────────────────────────────────────────────────────────
+const L = {
+  ko:{
+    hTitle:'연소성 분석표', n1:'입력', n2:'기록',
+    t_basic:'기본', t_basicTitle:'기본 정보',
+    t_cond:'조건', t_condTitle:'◎ 시험조건 (Test condition)',
+    t_meas:'측정', t_measTitle:'1) 연 소 성 (Flammability)',
+    t_note:'주사항', t_noteTitle:'◎ 주사항 (Note)',
+    t_photo:'사진', t_photoTitle:'시험 사진 (Sheet2)',
+    l_acc:'접수번호', l_date:'시험일', l_tester:'시험자', l_prod:'품명', l_method:'시험방법',
+    l_other:'기타', l_statePeriod:'상태조절 기간', l_heatPeriod:'고온방치 기간',
+    l_roomTemp:'시험실 온도', l_roomHumid:'시험실 상대습도', l_labDate:'시험일 (시험실)', l_equip:'시험기기',
+    l_dir:'방향 (Direction)', l_thick:'시험편 두께 (mm)', l_crit:'기준 ≤80', l_crit2:'기준 ≤80',
+    snote1:'시험 유형을 선택하세요 (복수 선택 가능)',
+    tc_stateTitle:'상태 (State)', tc_heatTitle:'고온방치 (Heat aging)',
+    sPass:'합격 (Pass)', sFail:'불합격 (Fail)', hPass:'합격 (Pass)', hFail:'불합격 (Fail)',
+    cs1:'기준 및 방법', cs2:'시험 특이사항', cs3:'시험편 추가정보',
+    l_stThick:'상태 시험편 두께', l_htThick:'고온방치 시험편 두께', l_memo:'기타 메모',
+    snote_photo:'📸 탭하면 카메라 촬영 또는 갤러리에서 선택. 엑셀 Sheet2에 자동 삽입됩니다.',
+    l_save:'저장', l_export:'엑셀 내보내기', l_reset:'초기화',
+    l_hist:'과거 기록', l_back:'돌아가기', dp0:'방향없음',
+  },
+  en:{
+    hTitle:'Flammability Analysis', n1:'Input', n2:'History',
+    t_basic:'INFO', t_basicTitle:'Basic Information',
+    t_cond:'COND', t_condTitle:'◎ Test condition',
+    t_meas:'DATA', t_measTitle:'1) Flammability',
+    t_note:'NOTE', t_noteTitle:'◎ Note',
+    t_photo:'PHOTO', t_photoTitle:'Test Photos (Sheet2)',
+    l_acc:'Order No.', l_date:'Test Date', l_tester:'Tester', l_prod:'Product', l_method:'Test Method',
+    l_other:'Other', l_statePeriod:'State Period', l_heatPeriod:'Heat Aging Period',
+    l_roomTemp:'Lab Temp.', l_roomHumid:'Lab Humidity', l_labDate:'Test Date (Lab)', l_equip:'Equipment',
+    l_dir:'Direction', l_thick:'Thickness (mm)', l_crit:'Limit ≤80', l_crit2:'Limit ≤80',
+    snote1:'Select test type (multiple allowed)',
+    tc_stateTitle:'State', tc_heatTitle:'Heat aging',
+    sPass:'Pass', sFail:'Fail', hPass:'Pass', hFail:'Fail',
+    cs1:'Criteria & Method', cs2:'Special Notes', cs3:'Specimen Info',
+    l_stThick:'State spec. thickness', l_htThick:'Heat aging spec. thickness', l_memo:'Other notes',
+    snote_photo:'📸 Tap to take photo or choose from gallery. Auto-inserted into Excel Sheet2.',
+    l_save:'Save', l_export:'Export Excel', l_reset:'Reset',
+    l_hist:'History', l_back:'Back', dp0:'Non-dir.',
+  }
+};
+// koen shares same labels as ko (bilingual content shown via ci-sub spans)
+
+const langSpans = {
+  // [koSpanId, enSpanId] pairs for bilingual content items
+  condChecks:[['cc_state_ko','cc_state_en'],['cc_heat_ko','cc_heat_en']],
+  noteChecks:[
+    ['n_crit_ko','n_crit_en'],['n_method_ko','n_method_en'],
+    ['n_stonly_ko','n_stonly_en'],['n_htonly_ko','n_htonly_en'],
+    ['n_se_ko','n_se_en'],['n_5min_ko','n_5min_en'],
+    ['n_cs_ko','n_cs_en'],['n_wire_ko','n_wire_en'],
+    ['n_rel_ko','n_rel_en'],['n_width_ko','n_width_en'],['n_length_ko','n_length_en'],
+    ['n_qty_ko','n_qty_en'],['n_nd_ko','n_nd_en'],['n_nodiff_ko','n_nodiff_en'],
+  ]
+};
+
+function setLang(l){
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach((b,i)=>{
+    b.classList.toggle('on',['ko','en','koen'][i]===l);
+  });
+  const d = L[l==='koen'?'ko':l];
+  Object.keys(d).forEach(k=>{ const el=document.getElementById(k); if(el) el.textContent=d[k]; });
+  // bilingual spans
+  [...langSpans.condChecks, ...langSpans.noteChecks].forEach(([koId, enId])=>{
+    const ko = document.getElementById(koId);
+    const en = document.getElementById(enId);
+    if(!ko||!en) return;
+    ko.style.display = l==='en'  ? 'none' : '';
+    en.style.display = l==='ko'  ? 'none' : '';
+  });
+  renderPhotos();
+}
+
+// ─── CARD TOGGLE ─────────────────────────────────────────────────────────────
+function tog(hd){
+  const bd = hd.nextElementSibling;
+  const ch = hd.querySelector('.chev');
+  const hide = bd.style.display !== 'none';
+  bd.style.display = hide ? 'none' : '';
+  ch.style.transform = hide ? 'rotate(-90deg)' : '';
+}
+
+// ─── TYPE TOGGLE ─────────────────────────────────────────────────────────────
+function togType(t){
+  activeTypes[t] = !activeTypes[t];
+  document.getElementById('tc'+(t==='state'?'State':'Heat')).classList.toggle('on', activeTypes[t]);
+  document.getElementById(t+'Section').style.display = activeTypes[t] ? '' : 'none';
+}
+
+// ─── DIRECTION ───────────────────────────────────────────────────────────────
+function setDir(d, el){
+  dir = d;
+  document.querySelectorAll('.dp').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  renderTables();
+}
+function getDirs(){ return dir==='none'?['']:dir==='both'?['MD','TD']:[dir]; }
+
+// ─── TABLES ──────────────────────────────────────────────────────────────────
+function renderTables(){
+  ['state','heat'].forEach(m=>{
+    const area = document.getElementById(m+'TableArea');
+    area.innerHTML = '';
+    getDirs().forEach(d=>{
+      const key = m+(d?'_'+d:'');
+      if(!mdata[m][key]) mdata[m][key]={};
+      const wrap = document.createElement('div');
+      let th = `<div class="ds-title">${m==='state'?'상태 (State)':'고온방치 (Heat aging)'}`;
+      if(d) th += ` <span class="dir-badge">${d}</span>`;
+      th += `</div>`;
+      const tbl = document.createElement('table');
+      tbl.className = 'mt';
+      tbl.style.marginBottom = '8px';
+      tbl.innerHTML = `<thead><tr>
+        <th style="width:22px">No.</th>
+        <th>거리<br><small>(mm)</small></th>
+        <th>시간<br><small>(s)</small></th>
+        <th>속도<br><small>(mm/min)</small></th>
+        <th style="width:34px">SE</th>
+      </tr></thead><tbody id="tb_${key}"></tbody>`;
+      wrap.innerHTML = th;
+      wrap.appendChild(tbl);
+      area.appendChild(wrap);
+      const tb = document.getElementById('tb_'+key);
+      for(let i=1;i<=N;i++){
+        const r = mdata[m][key][i]||{dist:'',time:'',rate:'',se:false};
+        const tr = document.createElement('tr');
+        tr.innerHTML=`
+          <td class="row-no">${i}</td>
+          <td><input type="number" min="0" value="${r.dist}" placeholder="0"
+            oninput="inp('${m}','${key}',${i},'dist',this.value);cr('${m}','${key}',${i})"></td>
+          <td><input type="number" min="0" value="${r.time}" placeholder="0"
+            oninput="inp('${m}','${key}',${i},'time',this.value);cr('${m}','${key}',${i})"></td>
+          <td><span class="rate-cell" id="rc_${key}_${i}">${r.rate||'-'}</span></td>
+          <td><button class="se-t ${r.se?'on':''}" id="se_${key}_${i}"
+            onclick="togSE('${m}','${key}',${i})">SE</button></td>`;
+        tb.appendChild(tr);
+      }
+    });
+    updSum(m);
+  });
+}
+
+function inp(m,key,i,f,v){
+  if(!mdata[m][key][i]) mdata[m][key][i]={dist:'',time:'',rate:'',se:false};
+  mdata[m][key][i][f]=v;
+}
+function cr(m,key,i){
+  if(!mdata[m][key][i]) return;
+  const d=parseFloat(mdata[m][key][i].dist), t=parseFloat(mdata[m][key][i].time);
+  let rate='';
+  if(!isNaN(d)&&!isNaN(t)&&t>0) rate=(d/t*60).toFixed(1);
+  mdata[m][key][i].rate=rate;
+  const el=document.getElementById('rc_'+key+'_'+i);
+  if(el) el.textContent=rate||'-';
+  updSum(m);
+}
+function togSE(m,key,i){
+  if(!mdata[m][key][i]) mdata[m][key][i]={dist:'',time:'',rate:'',se:false};
+  mdata[m][key][i].se=!mdata[m][key][i].se;
+  document.getElementById('se_'+key+'_'+i)?.classList.toggle('on',mdata[m][key][i].se);
+  updSum(m);
+}
+function updSum(m){
+  let rates=[];
+  getDirs().forEach(d=>{
+    const key=m+(d?'_'+d:'');
+    if(!mdata[m][key]) return;
+    for(let i=1;i<=N;i++){
+      const r=mdata[m][key][i];
+      if(r&&!r.se&&r.rate&&!isNaN(parseFloat(r.rate))) rates.push(parseFloat(r.rate));
+    }
+  });
+  const pfx = m==='state'?'s':'h';
+  const mxEl=document.getElementById(pfx+'Max'), avEl=document.getElementById(pfx+'Ave'), crEl=document.getElementById(pfx+'Crit');
+  if(!rates.length){ [mxEl,avEl].forEach(e=>{e.textContent='-';e.className='si-val';}); crEl.textContent='-';crEl.className='si-val'; return; }
+  const mx=Math.max(...rates), av=rates.reduce((a,b)=>a+b,0)/rates.length;
+  mxEl.textContent=mx.toFixed(1); avEl.textContent=av.toFixed(1);
+  crEl.textContent=mx<=80?'충족 ✓':'초과 ✗';
+  crEl.className='si-val '+(mx<=80?'ok':'ng');
+}
+
+// ─── VERDICT ─────────────────────────────────────────────────────────────────
+function setV(m,v){
+  verdicts[m]=verdicts[m]===v?null:v;
+  const pfx=m==='state'?'s':'h';
+  document.getElementById(pfx+'Pass').classList.toggle('on',verdicts[m]==='pass');
+  document.getElementById(pfx+'Fail').classList.toggle('on',verdicts[m]==='fail');
+}
+
+// ─── CHECKLIST ───────────────────────────────────────────────────────────────
+function chk(el){
+  el.classList.toggle('on');
+  el.querySelector('.ci-box').textContent=el.classList.contains('on')?'✓':'';
+}
+function getChecks(){
+  const r={};
+  document.querySelectorAll('[data-key]').forEach(el=>{ r[el.dataset.key]=el.classList.contains('on'); });
+  return r;
+}
+
+// ─── PHOTOS ──────────────────────────────────────────────────────────────────
+function renderPhotos(){
+  const grid = document.getElementById('photoGrid');
+  grid.innerHTML='';
+  photos.forEach((p,i)=>{
+    const label = lang==='en' ? p.labelEn : p.labelKo;
+    const slot  = document.createElement('div');
+    slot.className = 'ps'+(p.data?' has':'');
+    if(p.data){
+      slot.innerHTML = `<img src="${p.data}">
+        <button class="ps-rm" onclick="event.stopPropagation();rmPhoto(${i})">✕</button>
+        <input class="ps-cap" placeholder="${lang==='en'?'Caption...':'캡션...'}" value="${p.caption}"
+          oninput="photos[${i}].caption=this.value" onclick="event.stopPropagation()">`;
+    } else {
+      slot.innerHTML = `<div class="ps-icon">📷</div>
+        <div class="ps-lbl">${label}</div>
+        <div class="ps-add">${lang==='en'?'Tap to add':'탭하여 추가'}</div>`;
+      slot.onclick = ()=>openCam(i);
+    }
+    grid.appendChild(slot);
+  });
+}
+
+function rmPhoto(i){ photos[i].data=null; photos[i].caption=''; renderPhotos(); }
+
+// ─── CAMERA ──────────────────────────────────────────────────────────────────
+async function openCam(idx){
+  currentPhotoIdx = idx;
+  const modal = document.getElementById('camModal');
+  const label = lang==='en' ? photos[idx].labelEn : photos[idx].labelKo;
+  document.getElementById('camLabel').textContent = label;
+  modal.classList.remove('hidden');
+  await startStream();
+}
+
+async function startStream(){
+  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); }
+  try{
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode: camFacing, width:{ideal:1280}, height:{ideal:960} },
+      audio:false
+    });
+    document.getElementById('camVideo').srcObject = camStream;
+  } catch(e){
+    // 카메라 권한 없으면 파일 선택으로 fallback
+    closeCam();
+    pickFile();
+  }
+}
+
+async function switchCam(){
+  camFacing = camFacing==='environment'?'user':'environment';
+  await startStream();
+}
+
+function snap(){
+  const video  = document.getElementById('camVideo');
+  const canvas = document.getElementById('snapCanvas');
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video,0,0);
+  photos[currentPhotoIdx].data = canvas.toDataURL('image/jpeg', 0.85);
+  closeCam();
+  renderPhotos();
+  toast(lang==='en'?'Photo captured!':'사진 촬영 완료!');
+}
+
+function closeCam(){
+  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+  document.getElementById('camModal').classList.add('hidden');
+}
+
+function pickFile(){ document.getElementById('fileInput').click(); }
+function onFile(e){
+  const file=e.target.files[0]; if(!file||currentPhotoIdx===null) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{ photos[currentPhotoIdx].data=ev.target.result; renderPhotos(); toast(lang==='en'?'Photo added!':'사진 추가 완료!'); };
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+
+// ─── SAVE / LOAD ─────────────────────────────────────────────────────────────
+function collect(){
+  return {
+    accNo:g('accNo'), prodName:g('prodName'), tester:g('tester'), testDate:g('testDate'),
+    method:g('method'), thickness:g('thickness'), statePeriod:g('statePeriod'),
+    heatPeriod:g('heatPeriod'), roomTemp:g('roomTemp'), roomHumid:g('roomHumid'),
+    labDate:g('labDate'), equipment:g('equipment'), memo:g('memo'),
+    stateThickNote:g('stateThickNote'), heatThickNote:g('heatThickNote'),
+    lang, dir, activeTypes:{...activeTypes},
+    mdata:JSON.parse(JSON.stringify(mdata)),
+    verdicts:{...verdicts},
+    checks:getChecks(),
+    photos:photos.map(p=>({...p})),
+    dirs:getDirs(),
+  };
+}
+
+function save(){
+  const rec={id:Date.now(), ...collect()};
+  records.unshift(rec);
+  try{ localStorage.setItem('flamV4',JSON.stringify(records.slice(0,40))); }catch(e){}
+  toast(lang==='en'?'Saved ✓':'저장 완료 ✓');
+}
+
+function renderHistory(){
+  const list=document.getElementById('histList');
+  if(!records.length){ list.innerHTML=`<div class="empty">${lang==='en'?'No records found.':'저장된 기록이 없습니다.'}</div>`; return; }
+  list.innerHTML='';
+  const hl=document.createElement('div'); hl.className='hl';
+  records.forEach(r=>{
+    const item=document.createElement('div'); item.className='hi';
+    const bv=(v,lbl)=>`<span class="badge ${!v?'b-n':v==='pass'?'b-p':'b-f'}">${lbl}: ${!v?'-':v==='pass'?(lang==='en'?'Pass':'합격'):(lang==='en'?'Fail':'불합격')}</span>`;
+    item.innerHTML=`
+      <div><div class="hi-acc">${r.accNo||'-'} ${r.prodName?'· '+r.prodName:''}</div>
+      <div class="hi-meta">${r.testDate||''} ${r.tester?'· '+r.tester:''}</div></div>
+      <div class="hi-badges">${bv(r.verdicts?.state,lang==='en'?'State':'상태')}${bv(r.verdicts?.heat,lang==='en'?'Heat':'고온')}</div>`;
+    item.onclick=()=>loadRec(r);
+    hl.appendChild(item);
+  });
+  list.appendChild(hl);
+}
+
+function loadRec(r){
+  ['accNo','prodName','tester','testDate','method','thickness','statePeriod','heatPeriod',
+   'roomTemp','roomHumid','labDate','equipment','memo','stateThickNote','heatThickNote']
+   .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=r[id]||''; });
+  lang=r.lang||'ko'; setLang(lang);
+  dir=r.dir||'none';
+  document.querySelectorAll('.dp').forEach((p,i)=>p.classList.toggle('on',['none','MD','TD','both'][i]===dir));
+  activeTypes={...r.activeTypes};
+  ['state','heat'].forEach(t=>{
+    document.getElementById('tc'+(t==='state'?'State':'Heat')).classList.toggle('on',activeTypes[t]);
+    document.getElementById(t+'Section').style.display=activeTypes[t]?'':'none';
+  });
+  mdata=JSON.parse(JSON.stringify(r.mdata));
+  verdicts={...r.verdicts};
+  ['state','heat'].forEach(m=>{
+    const pfx=m==='state'?'s':'h';
+    document.getElementById(pfx+'Pass').classList.toggle('on',verdicts[m]==='pass');
+    document.getElementById(pfx+'Fail').classList.toggle('on',verdicts[m]==='fail');
+  });
+  if(r.photos) photos=r.photos.map(p=>({...p}));
+  if(r.checks) document.querySelectorAll('[data-key]').forEach(el=>{
+    const on=r.checks[el.dataset.key];
+    el.classList.toggle('on',!!on);
+    el.querySelector('.ci-box').textContent=on?'✓':'';
+  });
+  renderTables(); renderPhotos();
+  showView('form');
+  toast(lang==='en'?'Loaded ✓':'불러오기 완료 ✓');
+}
+
+function resetForm(){
+  if(!confirm(lang==='en'?'Reset all data?':'모든 데이터를 초기화할까요?')) return;
+  ['accNo','prodName','tester','thickness','statePeriod','heatPeriod','memo','stateThickNote','heatThickNote','equipment']
+    .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('testDate').value=today();
+  document.getElementById('labDate').value=today();
+  document.getElementById('roomTemp').value='( 21 ± 5 ) ℃';
+  document.getElementById('roomHumid').value='( 55 ± 5 ) %';
+  mdata={state:{},heat:{}}; verdicts={state:null,heat:null}; activeTypes={state:true,heat:true};
+  dir='none';
+  document.querySelectorAll('.dp').forEach((p,i)=>p.classList.toggle('on',i===0));
+  ['sPass','sFail','hPass','hFail'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  photos=photos.map(p=>({...p,data:null,caption:''}));
+  document.querySelectorAll('[data-key]').forEach(el=>{
+    const on=['cond_state','cond_heat','note_crit','note_se','note_5min'].includes(el.dataset.key);
+    el.classList.toggle('on',on); el.querySelector('.ci-box').textContent=on?'✓':'';
+  });
+  renderTables(); renderPhotos();
+}
+
+// ─── EXCEL EXPORT via Python backend ─────────────────────────────────────────
+// ─── Google Apps Script 웹앱 URL ─────────────────────────────────────────────
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxDwSk2HdRqoaEvhpsWkAz6HS8L2SG2atk9OUSFsJ3KmAm3tpIy85vBhmxpwgnPlgd_/exec';
+
+async function exportExcel(){
+  const overlay = document.getElementById('loadingOverlay');
+  const ltxt    = document.getElementById('loadingTxt');
+
+  // ── 유효성 검사 ────────────────────────────────────────────────────────────
+  if(!g('accNo'))    { toast('❗ 접수번호를 입력해주세요.'); return; }
+  if(!g('prodName')) { toast('❗ 품명을 입력해주세요.'); return; }
+  if(!g('tester'))   { toast('❗ 시험자를 입력해주세요.'); return; }
+
+  ltxt.textContent = '분석표 생성 중... (10~20초 소요)';
+  overlay.classList.remove('hidden');
+
+  try{
+    // ── 전송 데이터 구성 ───────────────────────────────────────────────────
+    const raw = collect();
+    const dirs = getDirs();
+
+    // 상태(State) 시편 데이터 배열로 변환
+    const stateArr = [];
+    const heatArr  = [];
+    for(let i = 1; i <= 5; i++){
+      const sKey = 'state' + (dirs[0] ? '_'+dirs[0] : '');
+      const hKey = 'heat'  + (dirs[0] ? '_'+dirs[0] : '');
+      const sd = (raw.mdata.state[sKey] || {})[i] || {};
+      const hd = (raw.mdata.heat[hKey]  || {})[i] || {};
+      stateArr.push({ dist: sd.dist||'', time: sd.time||'', thick: g('thickness'), se: sd.se||false });
+      heatArr.push({  dist: hd.dist||'', time: hd.time||'', thick: g('thickness'), se: hd.se||false });
+    }
+
+    // 시험조건 / 주사항 텍스트 생성 (체크된 항목만)
+    const checks = raw.checks;
+    const condKo = buildCondKo(checks);
+    const condEn = buildCondEn(checks);
+    const noteKo = buildNoteKo(checks);
+    const noteEn = buildNoteEn(checks);
+
+    const payload = {
+      accNo:         g('accNo'),
+      prodName:      g('prodName'),
+      tester:        g('tester'),
+      labDate:       g('labDate') || g('testDate'),
+      equipment:     g('equipment'),
+      state:         stateArr,
+      heat:          heatArr,
+      activeState:   raw.activeTypes.state,
+      activeHeat:    raw.activeTypes.heat,
+      stateVerdict:  verdicts.state === 'pass' ? '합 격(Pass)' :
+                     verdicts.state === 'fail' ? '불합격(Fail)' : '합 격(Pass)  /  불합격(Fail)',
+      heatVerdict:   verdicts.heat  === 'pass' ? '합 격(Pass)' :
+                     verdicts.heat  === 'fail' ? '불합격(Fail)' : '합 격(Pass)  /  불합격(Fail)',
+      condKo, condEn,
+      noteKo, noteEn,
+      remark:        g('stateThickNote') ?
+                     `상태 시험편 두께 : ${g('stateThickNote')} mm / Heat aging : ${g('heatThickNote')||g('stateThickNote')} mm` : '',
+      lang:          raw.lang,
+    };
+
+    // ── GAS 호출 ───────────────────────────────────────────────────────────
+    const res  = await fetch(GAS_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'text/plain' }, // GAS CORS 우회
+      body:    JSON.stringify(payload),
+    });
+    const json = await res.json();
+
+    overlay.classList.add('hidden');
+
+    if(json.success && json.url){
+      // 다운로드 링크 열기 + 카카오톡 공유 안내
+      showDownloadModal(json.url, g('accNo'));
+    } else {
+      throw new Error(json.error || '서버 오류');
+    }
+
+  } catch(err){
+    overlay.classList.add('hidden');
+    console.error(err);
+    toast('❗ 오류: ' + err.message);
+  }
+}
+
+// ── 체크 항목 → 텍스트 변환 ──────────────────────────────────────────────────
+function buildCondKo(c){
+  const lines = [];
+  if(c.cond_state) lines.push('☑ 상태 : (21 ± 5)℃, 상대습도 (55 ± 5) % 에서 적어도 24시간 상태조절 후 시험');
+  else             lines.push('□ 상태 : (21 ± 5)℃, 상대습도 (55 ± 5) % 에서 적어도 24시간 상태조절 후 시험');
+  if(c.cond_heat)  lines.push('☑ 고온방치 : (80 ± 3) ℃의 건조로에서 168 시간 노화 후 24 시간 동안 상태조절 후 시험');
+  else             lines.push('□ 고온방치 : (80 ± 3) ℃의 건조로에서 168 시간 노화 후 24 시간 동안 상태조절 후 시험');
+  return lines.join('\n');
+}
+function buildCondEn(c){
+  const lines = [];
+  if(c.cond_state) lines.push('☑ State : (21 ± 5) ℃, (55 ± 5) % R.H., for minimum of 24 h');
+  else             lines.push('□ State : (21 ± 5) ℃, (55 ± 5) % R.H., for minimum of 24 h');
+  if(c.cond_heat)  lines.push('☑ Heat aging : After aging in (80 ± 3) ℃ oven for 168 h, conditioned for 24 h.');
+  else             lines.push('□ Heat aging : After aging in (80 ± 3) ℃ oven for 168 h, conditioned for 24 h.');
+  return lines.join('\n');
+}
+function buildNoteKo(c){
+  const map = [
+    ['note_crit',        '기준 : 연소속도(최대치) 80 mm/min 이하 또는 계측점으로부터 50 mm 이상 연소하지 않으면서 60 초 이내에 꺼져야 한다.'],
+    ['note_method',      '시험은 MS300-08 : Rev.13 방법으로 진행하였음.'],
+    ['note_state_only',  '의뢰자의 요청에 따라 상태에서만 시험하였음.'],
+    ['note_heat_only',   '의뢰자의 요청에 따라 고온방치에서만 시험하였음.'],
+    ['note_se',          'SE - 자기소화성'],
+    ['note_5min',        '연소시간이 5 분을 초과하여 5 분까지의 연소 길이를 측정하였음.'],
+    ['note_client_spec', '의뢰자가 제시한 시험편으로 시험하였음'],
+    ['note_wire',        '의뢰자 요청에 따라 철사부착구에 시료를 거치하였음'],
+    ['note_release',     '의뢰자의 요청에 따라 이형지 제거 후 시험하였음.'],
+    ['note_width',       '시험편 폭 : 25 mm 미만'],
+    ['note_length',      '시험편 길이 : 293 mm 미만'],
+    ['note_qty',         '표준 요구 수량 미만 제시하여 규정횟수 측정치 못했음'],
+    ['note_nondirec',    '방향성 없는 시험편으로 시험하였음.'],
+    ['note_nodiff',      '방향별 연소속도의 차이가 없음.'],
+  ];
+  return map.map(([k,t]) => (c[k]?'☑ ':'□ ')+t).join('\n');
+}
+function buildNoteEn(c){
+  const map = [
+    ['note_crit',        'Requirement : Burning rate(Max.) ≤ 80 mm/min or extinguished within 50 mm, 60s'],
+    ['note_method',      'Test method : MS300-08 : Rev.13'],
+    ['note_state_only',  "Test was conducted only in the state by the client's request."],
+    ['note_heat_only',   "Test was conducted only in the heat aging by the client's request."],
+    ['note_se',          'SE = Self-extinguishing.'],
+    ['note_5min',        'The test was discontinued after 5 min because burning time was exceed 5 min.'],
+    ['note_client_spec', 'The test was conducted with a specimen supplied by the client.'],
+    ['note_wire',        'Specimens were placed on steel wire by the clients request.'],
+    ['note_release',     'Test was conducted after removing the release paper by the clients request.'],
+    ['note_width',       'Specimen width : Below 25 mm'],
+    ['note_length',      'Specimen length : Below 293 mm'],
+    ['note_qty',         'Fewer tests than specified were performed for lack of the submitted sample.'],
+    ['note_nondirec',    'Test was conducted with non-directional specimen'],
+    ['note_nodiff',      'No difference in burn rate by direction.'],
+  ];
+  return map.map(([k,t]) => (c[k]?'☑ ':'□ ')+t).join('\n');
+}
+
+// ── 다운로드 & 공유 모달 ──────────────────────────────────────────────────────
+function showDownloadModal(url, accNo){
+  // 기존 모달 제거
+  document.getElementById('dlModal')?.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'dlModal';
+  modal.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  `;
+  modal.innerHTML = `
+    <div style="background:var(--s);border-radius:var(--r);padding:22px;width:100%;max-width:340px;">
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px;">✅ 분석표 생성 완료!</div>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:18px;">${accNo || '연소성분석표'} — MASTER TEMPLATE 기반</div>
+
+      <a href="${url}" target="_blank" style="
+        display:block;text-align:center;padding:12px;background:var(--gr);color:#fff;
+        border-radius:var(--rs);font-size:14px;font-weight:700;text-decoration:none;margin-bottom:10px;
+      ">⬇ 엑셀 다운로드</a>
+
+      <button onclick="shareKakao('${url}','${accNo}')" style="
+        width:100%;padding:12px;background:#FEE500;color:#000;border:none;
+        border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px;
+      ">💬 카카오톡으로 공유</button>
+
+      <button onclick="copyLink('${url}')" style="
+        width:100%;padding:10px;background:var(--s2);border:1px solid var(--bd);
+        border-radius:var(--rs);font-size:13px;cursor:pointer;margin-bottom:14px;color:var(--tx2);font-weight:600;
+      ">🔗 링크 복사</button>
+
+      <button onclick="document.getElementById('dlModal').remove()" style="
+        width:100%;padding:9px;background:transparent;border:none;
+        font-size:13px;color:var(--tx3);cursor:pointer;
+      ">닫기</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
+}
+
+function shareKakao(url, accNo){
+  // 카카오톡 공유 (링크 복사 후 안내)
+  const text = `[연소성 분석표]\n접수번호: ${accNo||'-'}\n\n아래 링크에서 엑셀 파일을 다운로드하세요:\n${url}`;
+  navigator.clipboard.writeText(text).then(()=>{
+    toast('📋 카카오톡에 붙여넣기 할 텍스트가 복사됐어요!');
+  }).catch(()=>{
+    // iOS fallback
+    window.open(`https://wa.me/?text=${encodeURIComponent(url)}`, '_blank');
+  });
+}
+
+function copyLink(url){
+  navigator.clipboard.writeText(url).then(()=>{
+    toast('🔗 링크가 복사됐어요!');
+  }).catch(()=>{ toast('링크: '+url); });
+}
+
+function buildXLSX(data, fname){
+  // SheetJS로 원본 템플릿 최대한 재현
+  const wb = XLSX.utils.book_new();
+  const ws1data = buildSheet1Data(data);
+  const ws1 = XLSX.utils.aoa_to_sheet(ws1data);
+
+  // 열 너비 (원본 기준)
+  ws1['!cols'] = [
+    {wch:15},{wch:2},{wch:8},{wch:13},{wch:13},{wch:13},{wch:13},
+    {wch:8},{wch:8},{wch:13},{wch:13},{wch:8},{wch:2},{wch:15},{wch:10},{wch:55}
+  ];
+  XLSX.utils.book_append_sheet(wb, ws1, '연소성');
+
+  // Sheet2: 사진
+  const ws2data = buildSheet2Data(data);
+  const ws2 = XLSX.utils.aoa_to_sheet(ws2data);
+  ws2['!cols'] = [{wch:30},{wch:50}];
+  XLSX.utils.book_append_sheet(wb, ws2, '사진');
+
+  XLSX.writeFile(wb, fname);
+}
+
+function buildSheet1Data(d){
+  const lang = d.lang||'ko';
+  const dirs = d.dirs||[''];
+  const active = d.activeTypes||{state:true,heat:true};
+  const mdata  = d.mdata||{};
+  const checks = d.checks||{};
+  const verdicts = d.verdicts||{};
+  const thick = d.thickness||'';
+
+  function txt(ko,en){ return lang==='en'?en:lang==='koen'?(ko+'\n'+en):ko; }
+  function mark(key){ return checks[key]?'☑':'□'; }
+
+  const rows=[];
+  // Row 1
+  rows.push(['시 험 분 석 표 1 (공통)','','','','','','','','','','','','','','시험자','']);
+  // Row 2
+  rows.push([' 접수번호 : ',d.accNo,'','','','품명 : ','',d.prodName,'','','실무자','','','',d.tester,'']);
+  // Row 3
+  rows.push([' 시험항목 : ','','1) 연 소 성 (FLAMMABILITY)','','','','','','','','','','','','','']);
+  // Row 4
+  rows.push(['            시료구분\n시험항목','시      험      분      석      결      과','','','','','','','','','','','','비  고','','']);
+  // Row 5 (separator)
+  rows.push(Array(16).fill(''));
+  // Row 6: headers
+  rows.push(['1) 연 소 성','',txt('시험편\n조건','Test\ncondition'),txt('상 태\n(State)','State'),'',txt('고온방치\n(Heat aging)','Heat aging'),'',txt('시험실\n조건','Lab\ncondition'),txt('상 태\n(State)','State'),'',txt('고온방치\n(Heat aging)','Heat aging'),'','','∙ '+txt('시험방법','Test method'),'','']);
+  // Row 7
+  rows.push(['','',txt('일시','Date'),d.statePeriod,'',d.heatPeriod,'',txt('일시','Date'),d.labDate,'',d.labDate,'','',d.method,'','']);
+  rows.push(['','',txt('온도','Temp.'),'( 21 ± 5 ) ℃','','( 80 ± 3 ) ℃','',txt('온도','Temp.'),d.roomTemp,'',d.roomTemp,'','','∙ '+txt('시험기기','Equipment'),'','']);
+  rows.push(['','',txt('상대습도','Humidity'),'( 55 ± 5 ) %','','-','',txt('상대습도','Humidity'),d.roomHumid,'',d.roomHumid,'','','','','']);
+  rows.push(['','',txt('방치시간','Cond.'),'24 h','','168 h','',txt('날씨','Weather'),'-','','-','','',d.equipment,'','']);
+  // Row 11 (separator)
+  rows.push(Array(16).fill(''));
+  // Row 12: table header
+  rows.push(['','',txt('방향\nDirection','Direction'),txt('시편\nSpecimen No.','Specimen\nNo.'),txt('상 태(State)','State'),'','','',txt('고온방치(Heat aging)','Heat aging'),'','','','','','','']);
+  rows.push(['','','','',txt('연소거리\n(Burning Length)','Burning\nLength'),txt('연소시간\n(Burning Time)','Burning\nTime'),txt('연소속도\n(Burning rate)','Burning\nRate'),txt('두께\n(Thickness)','Thickness'),txt('연소거리\n(Burning Length)','Burning\nLength'),txt('연소시간\n(Burning Time)','Burning\nTime'),txt('연소속도\n(Burning rate)','Burning\nRate'),txt('두께\n(Thickness)','Thickness'),'','','','']);
+  rows.push(['','','','','(mm)','(s)','(mm/min)','(mm)','(mm)','(s)','(mm/min)','(mm)','','','','']);
+
+  // Data rows 15-24
+  const getD=(m,dir_,i)=>{
+    const key=m+(dir_?'_'+dir_:'');
+    return (mdata[m]||{})[key]?.[i]||{};
+  };
+  const calcRate=(dist,time,seFlag)=>{
+    if(seFlag) return 'SE';
+    const d=parseFloat(dist),t=parseFloat(time);
+    if(!isNaN(d)&&!isNaN(t)&&t>0){
+      if(d<=50&&t<=60) return 'SE';
+      return parseFloat((d/t*60).toFixed(1));
+    }
+    return '';
+  };
+
+  for(let i=1;i<=5;i++){
+    const rowDir = dirs[0]||'';
+    const sd=getD('state',rowDir,String(i));
+    const hd=getD('heat', rowDir,String(i));
+    rows.push(['','',i===1?(dirs[0]||''):''  ,i,
+      active.state?(sd.dist!==undefined?sd.dist:''):'',
+      active.state?(sd.time!==undefined?sd.time:''):'',
+      active.state?calcRate(sd.dist,sd.time,sd.se):'',
+      active.state?thick:'',
+      active.heat ?(hd.dist!==undefined?hd.dist:''):'',
+      active.heat ?(hd.time!==undefined?hd.time:''):'',
+      active.heat ?calcRate(hd.dist,hd.time,hd.se):'',
+      active.heat ?thick:'',
+      '','','','']);
+  }
+  // second dir (TD) rows 20-24
+  for(let i=1;i<=5;i++){
+    const rowDir = dirs[1]||'';
+    const sd=getD('state',rowDir,String(i));
+    const hd=getD('heat', rowDir,String(i));
+    rows.push(['','',i===1&&dirs.length>1?(dirs[1]||''):''  ,dirs.length>1?i:'',
+      active.state&&dirs.length>1?(sd.dist!==undefined?sd.dist:''):'',
+      active.state&&dirs.length>1?(sd.time!==undefined?sd.time:''):'',
+      active.state&&dirs.length>1?calcRate(sd.dist,sd.time,sd.se):'',
+      active.state&&dirs.length>1?thick:'',
+      active.heat &&dirs.length>1?(hd.dist!==undefined?hd.dist:''):'',
+      active.heat &&dirs.length>1?(hd.time!==undefined?hd.time:''):'',
+      active.heat &&dirs.length>1?calcRate(hd.dist,hd.time,hd.se):'',
+      active.heat &&dirs.length>1?thick:'',
+      '','','','']);
+  }
+
+  // Stats
+  const calcStats=(m)=>{
+    let rates=[];
+    dirs.forEach(dr=>{
+      const key=m+(dr?'_'+dr:'');
+      for(let i=1;i<=5;i++){
+        const r=(mdata[m]||{})[key]?.[String(i)];
+        if(r&&!r.se&&r.rate&&!isNaN(parseFloat(r.rate))) rates.push(parseFloat(r.rate));
+      }
+    });
+    if(!rates.length) return {max:'',ave:''};
+    return {max:Math.max(...rates).toFixed(1), ave:(rates.reduce((a,b)=>a+b,0)/rates.length).toFixed(2)};
+  };
+  const ss=calcStats('state'), hs=calcStats('heat');
+  rows.push(['','',txt('최대치 (Max.)','Max.'),'','-','',active.state?ss.max:'-','-','-','',active.heat?hs.max:'-','-','','','','']);
+  rows.push(['','',txt('평균치 (Ave.)','Ave.'),'','-','',active.state?ss.ave:'-',thick,'-','',active.heat?hs.ave:'-',thick,'','','','']);
+  const sv=verdicts.state, hv=verdicts.heat;
+  const vTxt=(v,on)=>!on?'-':(v==='pass'?txt('합 격(Pass)','Pass'):(v==='fail'?txt('불합격(Fail)','Fail'):txt('합 격(Pass)  /  불합격(Fail)','Pass  /  Fail')));
+  rows.push(['','',txt('판정 (Approval)','Approval'),'',vTxt(sv,active.state),'','','',vTxt(hv,active.heat),'','','','','','','']);
+
+  // empty
+  rows.push(Array(16).fill(''));
+  rows.push(['','',txt('◎ 시험조건 (Test condition)','◎ Test condition'),'','','','','','','','','','','','','']);
+
+  const condRows=[
+    ['cond_state',
+     txt(' 상태 : (21 ± 5)℃, 상대습도 (55 ± 5) % 에서 적어도 24시간 상태조절 후 시험',
+         ' State : (21 ± 5) ℃, (55 ± 5) % R.H., for minimum of 24 h')],
+    ['cond_heat',
+     txt(' 고온방치 : (80 ± 3) ℃의 건조로에서 168 시간 노화 후 24 시간 동안 상태조절 후 시험',
+         ' Heat aging : After aging in (80 ± 3) ℃ oven for 168 h, conditioned for 24 h.')],
+  ];
+  condRows.forEach(([key,t])=>{
+    rows.push(['','',mark(key)+t,'','','','','','','','','','','',checks[key]?'V':'',t]);
+  });
+  rows.push(Array(16).fill(''));
+  rows.push(['','',txt('◎ 주사항 (Note)','◎ Note'),'','','','','','','','','','','','','']);
+
+  const noteRows=[
+    ['note_crit',   txt(' 기준 : 연소속도(최대치) 80 mm/min 이하 또는 계측점으로부터 50 mm 이상 연소하지 않으면서 60 초 이내에 꺼져야 한다.',' Requirement : Burning rate(Max.) ≤ 80 mm/min or extinguished within 50 mm, 60s')],
+    ['note_method', txt(' 시험은 MS300-08 : Rev.13 방법으로 진행하였음.',' Test method : MS300-08 : Rev.13')],
+    ['note_state_only',txt(" 의뢰자의 요청에 따라 상태에서만 시험하였음."," Test was conducted only in the state by the client's request.")],
+    ['note_heat_only', txt(" 의뢰자의 요청에 따라 고온방치에서만 시험하였음."," Test was conducted only in the heat aging by the client's request.")],
+    ['note_se',     txt(' SE - 자기소화성',' SE = Self-extinguishing.')],
+    ['note_5min',   txt(' 연소시간이 5 분을 초과하여 5 분까지의 연소 길이를 측정하였음.',' The test was discontinued after 5 min because burning time was exceed 5 min.')],
+    ['note_client_spec',txt(' 의뢰자가 제시한 시험편으로 시험하였음',' The test was conducted with a specimen supplied by the client.')],
+    ['note_wire',   txt(' 의뢰자 요청에 따라 철사부착구에 시료를 거치하였음'," Specimens were placed on steel wire by the clients request.")],
+    ['note_release',txt(' 의뢰자의 요청에 따라 이형지 제거 후 시험하였음.'," Test was conducted after removing the release paper by the clients request.")],
+    ['note_width',  txt(' 시험편 폭 : 25 mm 미만',' Specimen width : Below 25 mm')],
+    ['note_length', txt(' 시험편 길이 : 293 mm 미만',' Specimen length : Below 293 mm')],
+    ['note_state_thick',txt(` 상태 시험편 두께 : ${d.stateThickNote||''} mm`,` State specimen thickness : ${d.stateThickNote||''} mm`)],
+    ['note_heat_thick', txt(` 고온방치 시험편 두께 : ${d.heatThickNote||''} mm`,` Heat aging specimen thickness : ${d.heatThickNote||''} mm`)],
+  ];
+  noteRows.forEach(([key,t])=>{
+    rows.push(['','',mark(key)+t,'','','','','','','','','','','',checks[key]?'V':'',t]);
+  });
+
+  rows.push(Array(16).fill(''));
+  rows.push(['   시험 시 온도 : (     21     ±     5     ) ℃\n   시험 시 습도 : (     55     ±     5     ) % R.H.','','','','','','','','시험일  :','',d.labDate,'','','','','']);
+  rows.push(Array(13).fill('').concat(['FITI-P011-02(Rev.0)','','']));
+  rows.push(Array(16).fill(''));
+
+  const extraNotes=[
+    ['note_client_spec',txt(' 의뢰자가 제시한 시험편으로 시험하였음',' The test was conducted with a specimen supplied by the client.')],
+    ['note_qty',        txt(' 표준 요구 수량 미만 제시하여 규정횟수 측정치 못했음',' Fewer tests than specified were performed for lack of the submitted sample.')],
+    ['note_wire',       txt(' 의뢰자 요청에 따라 철사부착구에 시료를 거치하였음'," Specimens were placed on steel wire by the clients request.")],
+    ['note_nondirec',   txt(' 방향성 없는 시험편으로 시험하였음.',' Test was conducted with non-directional specimen')],
+    ['note_nodiff',     txt(' 방향별 연소속도의 차이가 없음.',' No difference in burn rate by direction.')],
+  ];
+  extraNotes.forEach(([key,t])=>{
+    rows.push(['','',mark(key)+t,'','','','','','','','','','','',checks[key]?'V':'',t]);
+  });
+  rows.push(['','',txt('□ 시험편 폭 : 25 mm 미만 / Specimen width : Below 25 mm\n□ 시험편 길이 : 293 mm 미만 / Specimen length : Below 293 mm\n□ 시험편 두께 : 12 mm 초과 / Specimen thickness : Above 12 mm','□ Specimen width : Below 25 mm\n□ Specimen length : Below 293 mm\n□ Specimen thickness : Above 12 mm'),'','','','','','','','','','','','',txt(` 상태 시험편 두께 : ${d.stateThickNote||''}`,` State spec. thickness : ${d.stateThickNote||''}`),'']);
+  rows.push(Array(15).fill('').concat([txt(`고온방치 시험편 두께 : ${d.heatThickNote||''}`,`Heat aging spec. thickness : ${d.heatThickNote||''}`)]));
+
+  return rows;
+}
+
+function buildSheet2Data(d){
+  const lang = d.lang||'ko';
+  const txt=(ko,en)=>lang==='en'?en:lang==='koen'?(ko+'\n'+en):ko;
+  const rows=[
+    [txt('연소성 시험 사진','Flammability Test Photos')],
+    [txt('접수번호','Order No.')+' : '+(d.accNo||''), '', txt('품명','Product')+' : '+(d.prodName||''), '', txt('시험일','Test Date')+' : '+(d.labDate||'')],
+    [],
+    [txt('구분','Category'), txt('캡션','Caption')],
+  ];
+  (d.photos||[]).forEach(p=>{
+    const lbl = lang==='en'?p.labelEn:p.labelKo;
+    rows.push([lbl, p.data?(p.caption||''):(txt('[사진 없음]','[No photo]'))]);
+  });
+  return rows;
+}
+
+async function resizeImage(dataUrl, maxW, maxH){
+  return new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{
+      let w=img.width,h=img.height;
+      if(w>maxW||h>maxH){
+        const r=Math.min(maxW/w,maxH/h);
+        w=Math.round(w*r); h=Math.round(h*r);
+      }
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      res(c.toDataURL('image/jpeg',.82));
+    };
+    img.src=dataUrl;
+  });
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</body>
+</html>

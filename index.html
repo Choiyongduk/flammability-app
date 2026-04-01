@@ -880,6 +880,8 @@ async function exportExcel(){
       tester:        g('tester'),
       labDate:       g('labDate') || g('testDate'),
       equipment:     g('equipment'),
+      roomTemp:      g('roomTemp'),
+      roomHumid:     g('roomHumid'),
       state:         stateArr,
       heat:          heatArr,
       activeState:   raw.activeTypes.state,
@@ -919,60 +921,56 @@ async function exportExcel(){
   }
 }
 
-// ── 체크 항목 → 텍스트 변환 ──────────────────────────────────────────────────
+// ── 체크 항목 → 텍스트 변환 (체크된 항목만) ──────────────────────────────────
 function buildCondKo(c){
   const lines = [];
   if(c.cond_state) lines.push('☑ 상태 : (21 ± 5)℃, 상대습도 (55 ± 5) % 에서 적어도 24시간 상태조절 후 시험');
-  else             lines.push('□ 상태 : (21 ± 5)℃, 상대습도 (55 ± 5) % 에서 적어도 24시간 상태조절 후 시험');
   if(c.cond_heat)  lines.push('☑ 고온방치 : (80 ± 3) ℃의 건조로에서 168 시간 노화 후 24 시간 동안 상태조절 후 시험');
-  else             lines.push('□ 고온방치 : (80 ± 3) ℃의 건조로에서 168 시간 노화 후 24 시간 동안 상태조절 후 시험');
   return lines.join('\n');
 }
 function buildCondEn(c){
   const lines = [];
   if(c.cond_state) lines.push('☑ State : (21 ± 5) ℃, (55 ± 5) % R.H., for minimum of 24 h');
-  else             lines.push('□ State : (21 ± 5) ℃, (55 ± 5) % R.H., for minimum of 24 h');
   if(c.cond_heat)  lines.push('☑ Heat aging : After aging in (80 ± 3) ℃ oven for 168 h, conditioned for 24 h.');
-  else             lines.push('□ Heat aging : After aging in (80 ± 3) ℃ oven for 168 h, conditioned for 24 h.');
   return lines.join('\n');
 }
 function buildNoteKo(c){
   const map = [
-    ['note_crit',        '기준 : 연소속도(최대치) 80 mm/min 이하 또는 계측점으로부터 50 mm 이상 연소하지 않으면서 60 초 이내에 꺼져야 한다.'],
-    ['note_method',      '시험은 MS300-08 : Rev.13 방법으로 진행하였음.'],
-    ['note_state_only',  '의뢰자의 요청에 따라 상태에서만 시험하였음.'],
-    ['note_heat_only',   '의뢰자의 요청에 따라 고온방치에서만 시험하였음.'],
-    ['note_se',          'SE - 자기소화성'],
-    ['note_5min',        '연소시간이 5 분을 초과하여 5 분까지의 연소 길이를 측정하였음.'],
-    ['note_client_spec', '의뢰자가 제시한 시험편으로 시험하였음'],
-    ['note_wire',        '의뢰자 요청에 따라 철사부착구에 시료를 거치하였음'],
-    ['note_release',     '의뢰자의 요청에 따라 이형지 제거 후 시험하였음.'],
-    ['note_width',       '시험편 폭 : 25 mm 미만'],
-    ['note_length',      '시험편 길이 : 293 mm 미만'],
-    ['note_qty',         '표준 요구 수량 미만 제시하여 규정횟수 측정치 못했음'],
-    ['note_nondirec',    '방향성 없는 시험편으로 시험하였음.'],
-    ['note_nodiff',      '방향별 연소속도의 차이가 없음.'],
+    ['note_crit',        '☑ 기준 : 연소속도(최대치) 80 mm/min 이하 또는 계측점으로부터 50 mm 이상 연소하지 않으면서 60 초 이내에 꺼져야 한다.'],
+    ['note_method',      '☑ 시험은 MS300-08 : Rev.13 방법으로 진행하였음.'],
+    ['note_state_only',  '☑ 의뢰자의 요청에 따라 상태에서만 시험하였음.'],
+    ['note_heat_only',   '☑ 의뢰자의 요청에 따라 고온방치에서만 시험하였음.'],
+    ['note_se',          '☑ SE - 자기소화성'],
+    ['note_5min',        '☑ 연소시간이 5 분을 초과하여 5 분까지의 연소 길이를 측정하였음.'],
+    ['note_client_spec', '☑ 의뢰자가 제시한 시험편으로 시험하였음'],
+    ['note_wire',        '☑ 의뢰자 요청에 따라 철사부착구에 시료를 거치하였음'],
+    ['note_release',     '☑ 의뢰자의 요청에 따라 이형지 제거 후 시험하였음.'],
+    ['note_width',       '☑ 시험편 폭 : 25 mm 미만'],
+    ['note_length',      '☑ 시험편 길이 : 293 mm 미만'],
+    ['note_qty',         '☑ 표준 요구 수량 미만 제시하여 규정횟수 측정치 못했음'],
+    ['note_nondirec',    '☑ 방향성 없는 시험편으로 시험하였음.'],
+    ['note_nodiff',      '☑ 방향별 연소속도의 차이가 없음.'],
   ];
-  return map.map(([k,t]) => (c[k]?'☑ ':'□ ')+t).join('\n');
+  return map.filter(([k])=>c[k]).map(([,t])=>t).join('\n');
 }
 function buildNoteEn(c){
   const map = [
-    ['note_crit',        'Requirement : Burning rate(Max.) ≤ 80 mm/min or extinguished within 50 mm, 60s'],
-    ['note_method',      'Test method : MS300-08 : Rev.13'],
-    ['note_state_only',  "Test was conducted only in the state by the client's request."],
-    ['note_heat_only',   "Test was conducted only in the heat aging by the client's request."],
-    ['note_se',          'SE = Self-extinguishing.'],
-    ['note_5min',        'The test was discontinued after 5 min because burning time was exceed 5 min.'],
-    ['note_client_spec', 'The test was conducted with a specimen supplied by the client.'],
-    ['note_wire',        'Specimens were placed on steel wire by the clients request.'],
-    ['note_release',     'Test was conducted after removing the release paper by the clients request.'],
-    ['note_width',       'Specimen width : Below 25 mm'],
-    ['note_length',      'Specimen length : Below 293 mm'],
-    ['note_qty',         'Fewer tests than specified were performed for lack of the submitted sample.'],
-    ['note_nondirec',    'Test was conducted with non-directional specimen'],
-    ['note_nodiff',      'No difference in burn rate by direction.'],
+    ['note_crit',        '☑ Requirement : Burning rate(Max.) ≤ 80 mm/min or extinguished within 50 mm, 60s'],
+    ['note_method',      '☑ Test method : MS300-08 : Rev.13'],
+    ['note_state_only',  "☑ Test was conducted only in the state by the client's request."],
+    ['note_heat_only',   "☑ Test was conducted only in the heat aging by the client's request."],
+    ['note_se',          '☑ SE = Self-extinguishing.'],
+    ['note_5min',        '☑ The test was discontinued after 5 min because burning time was exceed 5 min.'],
+    ['note_client_spec', '☑ The test was conducted with a specimen supplied by the client.'],
+    ['note_wire',        '☑ Specimens were placed on steel wire by the clients request.'],
+    ['note_release',     '☑ Test was conducted after removing the release paper by the clients request.'],
+    ['note_width',       '☑ Specimen width : Below 25 mm'],
+    ['note_length',      '☑ Specimen length : Below 293 mm'],
+    ['note_qty',         '☑ Fewer tests than specified were performed for lack of the submitted sample.'],
+    ['note_nondirec',    '☑ Test was conducted with non-directional specimen'],
+    ['note_nodiff',      '☑ No difference in burn rate by direction.'],
   ];
-  return map.map(([k,t]) => (c[k]?'☑ ':'□ ')+t).join('\n');
+  return map.filter(([k])=>c[k]).map(([,t])=>t).join('\n');
 }
 
 // ── 다운로드 & 공유 모달 ──────────────────────────────────────────────────────

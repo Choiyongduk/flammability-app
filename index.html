@@ -240,8 +240,22 @@ canvas#snapCanvas{display:none;}
     </div>
     <div class="divider"></div>
     <div class="fg g2" style="margin-top:9px;">
-      <div class="f"><label id="l_statePeriod">상태조절 기간</label><input type="text" id="statePeriod" placeholder="2025.11.03~2025.11.04"></div>
-      <div class="f"><label id="l_heatPeriod">고온방치 기간</label><input type="text" id="heatPeriod" placeholder="2025.10.27~2025.11.03"></div>
+      <div class="f">
+        <label id="l_statePeriod">상태조절 기간</label>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <input type="date" id="statePeriodFrom" style="flex:1;">
+          <span style="font-size:11px;color:var(--tx3);">~</span>
+          <input type="date" id="statePeriodTo" style="flex:1;">
+        </div>
+      </div>
+      <div class="f">
+        <label id="l_heatPeriod">고온방치 기간</label>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <input type="date" id="heatPeriodFrom" style="flex:1;">
+          <span style="font-size:11px;color:var(--tx3);">~</span>
+          <input type="date" id="heatPeriodTo" style="flex:1;">
+        </div>
+      </div>
       <div class="f"><label id="l_roomTemp">시험실 온도</label><input type="text" id="roomTemp" value="( 21 ± 5 ) ℃"></div>
       <div class="f"><label id="l_roomHumid">시험실 상대습도</label><input type="text" id="roomHumid" value="( 55 ± 5 ) %"></div>
       <div class="f"><label id="l_labDate">시험일 (시험실)</label><input type="date" id="labDate"></div>
@@ -288,7 +302,6 @@ canvas#snapCanvas{display:none;}
           <span class="dp" onclick="setDir('both',this)">MD+TD</span>
         </div>
       </div>
-      <div class="f"><label id="l_thick">시험편 두께 (mm)</label><input type="text" id="thickness" placeholder="3.0"></div>
     </div>
 
     <!-- 상태 -->
@@ -578,6 +591,7 @@ function renderTables(){
         <th>거리<br><small>(mm)</small></th>
         <th>시간<br><small>(s)</small></th>
         <th>속도<br><small>(mm/min)</small></th>
+        <th>두께<br><small>(mm)</small></th>
         <th style="width:34px">SE</th>
       </tr></thead><tbody id="tb_${key}"></tbody>`;
       wrap.innerHTML = th;
@@ -585,7 +599,7 @@ function renderTables(){
       area.appendChild(wrap);
       const tb = document.getElementById('tb_'+key);
       for(let i=1;i<=N;i++){
-        const r = mdata[m][key][i]||{dist:'',time:'',rate:'',se:false};
+        const r = mdata[m][key][i]||{dist:'',time:'',rate:'',thick:'',se:false};
         const tr = document.createElement('tr');
         tr.innerHTML=`
           <td class="row-no">${i}</td>
@@ -594,6 +608,8 @@ function renderTables(){
           <td><input type="number" min="0" value="${r.time}" placeholder="0"
             oninput="inp('${m}','${key}',${i},'time',this.value);cr('${m}','${key}',${i})"></td>
           <td><span class="rate-cell" id="rc_${key}_${i}">${r.rate||'-'}</span></td>
+          <td><input type="number" min="0" step="0.1" value="${r.thick}" placeholder="3.0"
+            oninput="inp('${m}','${key}',${i},'thick',this.value)"></td>
           <td><button class="se-t ${r.se?'on':''}" id="se_${key}_${i}"
             onclick="togSE('${m}','${key}',${i})">SE</button></td>`;
         tb.appendChild(tr);
@@ -746,8 +762,10 @@ function onFile(e){
 function collect(){
   return {
     accNo:g('accNo'), prodName:g('prodName'), tester:g('tester'), testDate:g('testDate'),
-    method:g('method'), thickness:g('thickness'), statePeriod:g('statePeriod'),
-    heatPeriod:g('heatPeriod'), roomTemp:g('roomTemp'), roomHumid:g('roomHumid'),
+    method:g('method'),
+    statePeriodFrom:g('statePeriodFrom'), statePeriodTo:g('statePeriodTo'),
+    heatPeriodFrom:g('heatPeriodFrom'),   heatPeriodTo:g('heatPeriodTo'),
+    roomTemp:g('roomTemp'), roomHumid:g('roomHumid'),
     labDate:g('labDate'), equipment:g('equipment'), memo:g('memo'),
     stateThickNote:g('stateThickNote'), heatThickNote:g('heatThickNote'),
     lang, dir, activeTypes:{...activeTypes},
@@ -785,7 +803,8 @@ function renderHistory(){
 }
 
 function loadRec(r){
-  ['accNo','prodName','tester','testDate','method','thickness','statePeriod','heatPeriod',
+  ['accNo','prodName','tester','testDate','method',
+   'statePeriodFrom','statePeriodTo','heatPeriodFrom','heatPeriodTo',
    'roomTemp','roomHumid','labDate','equipment','memo','stateThickNote','heatThickNote']
    .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=r[id]||''; });
   lang=r.lang||'ko'; setLang(lang);
@@ -816,7 +835,8 @@ function loadRec(r){
 
 function resetForm(){
   if(!confirm(lang==='en'?'Reset all data?':'모든 데이터를 초기화할까요?')) return;
-  ['accNo','prodName','tester','thickness','statePeriod','heatPeriod','memo','stateThickNote','heatThickNote','equipment']
+  ['accNo','prodName','tester','memo','stateThickNote','heatThickNote','equipment',
+   'statePeriodFrom','statePeriodTo','heatPeriodFrom','heatPeriodTo']
     .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('testDate').value=today();
   document.getElementById('labDate').value=today();
@@ -854,7 +874,14 @@ async function exportExcel(){
     const raw = collect();
     const dirs = getDirs();
 
-    // 상태(State) 시편 데이터 배열로 변환
+    // 상태조절/고온방치 기간 날짜 조합
+    const sfrom = g('statePeriodFrom'), sto = g('statePeriodTo');
+    const hfrom = g('heatPeriodFrom'),  hto = g('heatPeriodTo');
+    const fmtDate = s => s ? s.replace(/-/g,'.') : '';
+    const statePeriodStr = sfrom||sto ? fmtDate(sfrom)+'~'+fmtDate(sto) : '';
+    const heatPeriodStr  = hfrom||hto ? fmtDate(hfrom)+'~'+fmtDate(hto) : '';
+
+    // 상태(State) 시편 데이터 — 두께 각 행에서 가져오기
     const stateArr = [];
     const heatArr  = [];
     for(let i = 1; i <= 5; i++){
@@ -862,8 +889,8 @@ async function exportExcel(){
       const hKey = 'heat'  + (dirs[0] ? '_'+dirs[0] : '');
       const sd = (raw.mdata.state[sKey] || {})[i] || {};
       const hd = (raw.mdata.heat[hKey]  || {})[i] || {};
-      stateArr.push({ dist: sd.dist||'', time: sd.time||'', thick: g('thickness'), se: sd.se||false });
-      heatArr.push({  dist: hd.dist||'', time: hd.time||'', thick: g('thickness'), se: hd.se||false });
+      stateArr.push({ dist: sd.dist||'', time: sd.time||'', thick: sd.thick||'', se: sd.se||false });
+      heatArr.push({  dist: hd.dist||'', time: hd.time||'', thick: hd.thick||'', se: hd.se||false });
     }
 
     // 시험조건 / 주사항 텍스트 생성 (체크된 항목만)
@@ -885,8 +912,8 @@ async function exportExcel(){
         const hKey2 = 'heat_'  + dirs[1];
         const sd2 = (raw.mdata.state[sKey2] || {})[i] || {};
         const hd2 = (raw.mdata.heat[hKey2]  || {})[i] || {};
-        stateArr2.push({ dist: sd2.dist||'', time: sd2.time||'', thick: g('thickness'), se: sd2.se||false });
-        heatArr2.push({  dist: hd2.dist||'', time: hd2.time||'', thick: g('thickness'), se: hd2.se||false });
+        stateArr2.push({ dist: sd2.dist||'', time: sd2.time||'', thick: sd2.thick||'', se: sd2.se||false });
+        heatArr2.push({  dist: hd2.dist||'', time: hd2.time||'', thick: hd2.thick||'', se: hd2.se||false });
       }
     }
 
@@ -901,6 +928,8 @@ async function exportExcel(){
       prodName:      g('prodName'),
       tester:        g('tester'),
       labDate:       g('labDate') || g('testDate'),
+      statePeriod:   statePeriodStr,
+      heatPeriod:    heatPeriodStr,
       method:        g('method'),
       equipment:     g('equipment'),
       roomTemp:      g('roomTemp'),

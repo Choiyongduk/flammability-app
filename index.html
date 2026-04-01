@@ -327,22 +327,37 @@ canvas#snapCanvas{display:none;}
     </div>
     <div class="divider"></div>
     <div class="fg g2" style="margin-top:9px;">
-      <div class="f">
+
+      <!-- 상태조절 기간: 1열 전체, 시작~종료 세로 배치 -->
+      <div class="f full">
         <label id="l_statePeriod">상태조절 기간</label>
-        <div style="display:flex;gap:4px;align-items:center;">
-          <input type="date" id="statePeriodFrom" style="flex:1;">
-          <span style="font-size:11px;color:var(--tx3);">~</span>
-          <input type="date" id="statePeriodTo" style="flex:1;">
+        <div class="fg g2" style="gap:6px;margin-top:2px;">
+          <div class="f">
+            <label style="font-size:10px;color:var(--tx3);font-weight:400;">시작일</label>
+            <input type="date" id="statePeriodFrom">
+          </div>
+          <div class="f">
+            <label style="font-size:10px;color:var(--tx3);font-weight:400;">종료일</label>
+            <input type="date" id="statePeriodTo">
+          </div>
         </div>
       </div>
-      <div class="f">
+
+      <!-- 고온방치 기간: 1열 전체, 시작~종료 세로 배치 -->
+      <div class="f full">
         <label id="l_heatPeriod">고온방치 기간</label>
-        <div style="display:flex;gap:4px;align-items:center;">
-          <input type="date" id="heatPeriodFrom" style="flex:1;">
-          <span style="font-size:11px;color:var(--tx3);">~</span>
-          <input type="date" id="heatPeriodTo" style="flex:1;">
+        <div class="fg g2" style="gap:6px;margin-top:2px;">
+          <div class="f">
+            <label style="font-size:10px;color:var(--tx3);font-weight:400;">시작일</label>
+            <input type="date" id="heatPeriodFrom">
+          </div>
+          <div class="f">
+            <label style="font-size:10px;color:var(--tx3);font-weight:400;">종료일</label>
+            <input type="date" id="heatPeriodTo">
+          </div>
         </div>
       </div>
+
       <div class="f"><label id="l_roomTemp">시험실 온도</label><input type="text" id="roomTemp" value="( 21 ± 5 ) ℃"></div>
       <div class="f"><label id="l_roomHumid">시험실 상대습도</label><input type="text" id="roomHumid" value="( 55 ± 5 ) %"></div>
       <div class="f"><label id="l_labDate">시험일 (시험실)</label><input type="date" id="labDate"></div>
@@ -365,7 +380,22 @@ canvas#snapCanvas{display:none;}
     <span class="chev">▾</span>
   </div>
   <div class="card-bd">
-    <div class="snote" id="snote1">시험 유형을 선택하세요 (복수 선택 가능)</div>
+
+    <!-- OCR 스캔 버튼 -->
+    <div style="margin-bottom:12px;">
+      <button onclick="openOcrCam()" style="
+        width:100%;padding:13px;background:linear-gradient(135deg,#1a56db,#0f3fa8);
+        color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:700;
+        cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+      ">
+        📷 기록지 촬영 → 자동 입력
+      </button>
+      <div style="font-size:11px;color:var(--tx3);text-align:center;margin-top:5px;">
+        수기 기록지를 촬영하면 AI가 자동으로 데이터를 읽어서 입력해줘요
+      </div>
+    </div>
+
+    <div class="snote" id="snote1">또는 직접 입력하세요</div>
     <div class="type-grid">
       <div class="tc on" id="tcState" onclick="togType('state')">
         <div class="tc-chk">✓</div>
@@ -507,6 +537,36 @@ canvas#snapCanvas{display:none;}
     <button class="cam-cancel" onclick="pickFile()">갤러리</button>
   </div>
   <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="onFile(event)">
+</div>
+
+<!-- ═══ OCR 카메라 모달 ══════════════════════════════════════════════════════ -->
+<div class="cam-modal hidden" id="ocrModal">
+  <div class="cam-label" style="font-size:15px;font-weight:700;">📋 수기 기록지 촬영</div>
+  <div style="color:rgba(255,255,255,.7);font-size:12px;padding:4px 16px 8px;text-align:center;">기록지 전체가 화면에 들어오도록 촬영해주세요</div>
+  <video id="ocrVideo" autoplay playsinline style="width:100%;max-height:62vh;object-fit:cover;"></video>
+  <canvas id="ocrCanvas" style="display:none;"></canvas>
+  <button class="cam-switch" onclick="switchOcrCam()">🔄 전환</button>
+  <div class="cam-ctrl">
+    <button class="cam-cancel" onclick="closeOcrCam()">취소</button>
+    <button class="cam-shutter" onclick="snapOcr()" style="background:#1a56db;border-color:#0f3fa8;font-size:22px;">📋</button>
+    <button class="cam-cancel" onclick="pickOcrFile()">갤러리</button>
+  </div>
+  <input type="file" id="ocrFileInput" accept="image/*" style="display:none" onchange="onOcrFile(event)">
+</div>
+
+<!-- ═══ OCR 결과 확인 모달 ══════════════════════════════════════════════════ -->
+<div id="ocrResultModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:800;align-items:flex-end;justify-content:center;">
+  <div style="background:var(--s);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:680px;max-height:85vh;overflow-y:auto;padding:20px 16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-size:15px;font-weight:700;">📋 인식 결과 확인</div>
+      <button onclick="closeOcrResult()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--tx3);">✕</button>
+    </div>
+    <div id="ocrResultBody"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button onclick="applyOcrResult()" style="flex:2;padding:13px;background:var(--gr);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;">✅ 적용하기</button>
+      <button onclick="closeOcrResult()" style="flex:1;padding:13px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--rs);font-size:13px;cursor:pointer;color:var(--tx2);">다시 촬영</button>
+    </div>
+  </div>
 </div>
 
 <!-- ═══ LOADING ══════════════════════════════════════════════════════════ -->
@@ -1394,6 +1454,207 @@ async function resizeImage(dataUrl, maxW, maxH){
     };
     img.src=dataUrl;
   });
+}
+
+// ─── OCR: 수기 기록지 자동 인식 ──────────────────────────────────────────────
+let ocrStream = null;
+let ocrFacing = 'environment';
+let ocrParsed = null; // AI가 파싱한 결과 저장
+
+async function openOcrCam(){
+  document.getElementById('ocrModal').classList.remove('hidden');
+  await startOcrStream();
+}
+
+async function startOcrStream(){
+  if(ocrStream){ ocrStream.getTracks().forEach(t=>t.stop()); }
+  try{
+    ocrStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode: ocrFacing, width:{ideal:1920}, height:{ideal:1080} },
+      audio:false
+    });
+    document.getElementById('ocrVideo').srcObject = ocrStream;
+  } catch(e){
+    closeOcrCam();
+    pickOcrFile();
+  }
+}
+
+async function switchOcrCam(){
+  ocrFacing = ocrFacing==='environment'?'user':'environment';
+  await startOcrStream();
+}
+
+function snapOcr(){
+  const video  = document.getElementById('ocrVideo');
+  const canvas = document.getElementById('ocrCanvas');
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+  closeOcrCam();
+  runOcr(dataUrl);
+}
+
+function closeOcrCam(){
+  if(ocrStream){ ocrStream.getTracks().forEach(t=>t.stop()); ocrStream=null; }
+  document.getElementById('ocrModal').classList.add('hidden');
+}
+
+function pickOcrFile(){ document.getElementById('ocrFileInput').click(); }
+
+function onOcrFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => runOcr(ev.target.result);
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+// ── Google Drive OCR (GAS 경유, 완전 무료) ───────────────────────────────────
+async function runOcr(dataUrl){
+  const overlay = document.getElementById('loadingOverlay');
+  const ltxt    = document.getElementById('loadingTxt');
+  ltxt.textContent = '🔍 AI가 기록지를 읽는 중...';
+  overlay.classList.remove('hidden');
+
+  try{
+    // 이미지 리사이즈 후 base64 추출
+    const resized = await resizeImage(dataUrl, 1200, 1600);
+    const b64 = resized.split(',')[1];
+
+    // GAS로 OCR 요청 (Google Drive OCR — 무료)
+    const res = await fetch(GAS_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body:    JSON.stringify({ action: 'ocr', imageBase64: b64 })
+    });
+    const json = await res.json();
+    overlay.classList.add('hidden');
+
+    if(!json.success) throw new Error(json.error || 'OCR 실패');
+
+    ocrParsed = json.data;
+    showOcrResult(ocrParsed);
+
+  } catch(err){
+    overlay.classList.add('hidden');
+    toast('❗ 인식 실패: ' + err.message);
+    console.error(err);
+  }
+}
+
+// ── OCR 결과 미리보기 ──────────────────────────────────────────────────────────
+function showOcrResult(data){
+  const modal = document.getElementById('ocrResultModal');
+  const body  = document.getElementById('ocrResultBody');
+  modal.style.display = 'flex';
+
+  const confColor = data.confidence==='high' ? 'var(--gr)' : data.confidence==='medium' ? 'var(--or)' : 'var(--rd)';
+  const confText  = data.confidence==='high'   ? '✅ 높음' :
+                    data.confidence==='medium'  ? '⚠️ 보통' : '❗ 낮음 — 확인 필요';
+
+  let html = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:10px;background:var(--s2);border-radius:var(--rs);">
+      <span style="font-size:13px;font-weight:700;">인식 신뢰도:</span>
+      <span style="font-size:13px;font-weight:700;color:${confColor};">${confText}</span>
+    </div>`;
+
+  if(data.accNo) html += `
+    <div style="padding:8px 10px;background:var(--acl);border-radius:var(--rs);margin-bottom:10px;font-size:13px;">
+      📋 접수번호: <strong>${data.accNo}</strong>
+    </div>`;
+
+  if(data.notes) html += `
+    <div style="padding:8px 10px;background:#fff9e6;border-radius:var(--rs);margin-bottom:10px;font-size:12px;color:#92400e;">
+      💬 ${data.notes}
+    </div>`;
+
+  // 방향 배지
+  const dirMap = {'none':'방향없음','MD':'MD','TD':'TD','both':'MD+TD'};
+  html += `<div style="margin-bottom:10px;font-size:12px;color:var(--tx2);">방향: <strong>${dirMap[data.dir]||data.dir}</strong></div>`;
+
+  // 상태/고온 테이블
+  ['state','heat'].forEach(m=>{
+    const lbl = m==='state' ? '상태 (State)' : '고온방치 (Heat aging)';
+    const dirs = data.dir==='both' ? ['MD','TD'] : ['MD'];
+    dirs.forEach(d=>{
+      const rows = data[m]?.[d] || [];
+      if(!rows.length) return;
+      html += `<div style="margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:4px;">${lbl}${data.dir==='both'?' — '+d:''}</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead><tr style="background:var(--s2);">
+            <th style="padding:5px;border:1px solid var(--bd);text-align:center;">No.</th>
+            <th style="padding:5px;border:1px solid var(--bd);text-align:center;">거리(mm)</th>
+            <th style="padding:5px;border:1px solid var(--bd);text-align:center;">시간(s)</th>
+            <th style="padding:5px;border:1px solid var(--bd);text-align:center;">결과</th>
+          </tr></thead><tbody>`;
+      rows.forEach((r,i)=>{
+        const result = r.se ? '<span style="color:var(--gr);font-weight:700;">SE</span>'
+                             : (r.dist&&r.time ? (parseFloat(r.dist)/parseFloat(r.time)*60).toFixed(1)+' mm/min' : '-');
+        html += `<tr>
+          <td style="padding:5px;border:1px solid var(--bd);text-align:center;">${i+1}</td>
+          <td style="padding:5px;border:1px solid var(--bd);text-align:center;">${r.se?'—':r.dist||'-'}</td>
+          <td style="padding:5px;border:1px solid var(--bd);text-align:center;">${r.se?'—':r.time||'-'}</td>
+          <td style="padding:5px;border:1px solid var(--bd);text-align:center;">${result}</td>
+        </tr>`;
+      });
+      html += `</tbody></table></div>`;
+    });
+  });
+
+  body.innerHTML = html;
+}
+
+// ── OCR 결과 앱에 적용 ────────────────────────────────────────────────────────
+function applyOcrResult(){
+  if(!ocrParsed) return;
+  const data = ocrParsed;
+
+  // 접수번호 자동 입력
+  if(data.accNo && !g('accNo')){
+    document.getElementById('accNo').value = data.accNo;
+  }
+
+  // 방향 설정
+  const dirMap = {'none':0,'MD':1,'TD':2,'both':3};
+  const dpIdx  = dirMap[data.dir] ?? 0;
+  dir = data.dir || 'none';
+  document.querySelectorAll('.dp').forEach((p,i)=>p.classList.toggle('on', i===dpIdx));
+
+  // mdata에 데이터 채우기
+  const dirs = data.dir==='both' ? ['MD','TD'] : ['MD'];
+  ['state','heat'].forEach(m=>{
+    dirs.forEach(d=>{
+      const key  = m + (data.dir==='none' ? '' : '_'+d);
+      const rows = data[m]?.[d] || [];
+      if(!mdata[m][key]) mdata[m][key] = {};
+      rows.forEach((r,i)=>{
+        mdata[m][key][i+1] = {
+          dist:  r.se ? '0' : (r.dist  || ''),
+          time:  r.se ? '0' : (r.time  || ''),
+          thick: r.thick || '',
+          rate:  '',
+          se:    r.se || false
+        };
+        // 연소속도 계산
+        if(!r.se && r.dist && r.time && parseFloat(r.time)>0){
+          mdata[m][key][i+1].rate = (parseFloat(r.dist)/parseFloat(r.time)*60).toFixed(1);
+        }
+      });
+    });
+  });
+
+  closeOcrResult();
+  renderTables();
+  toast('✅ 데이터 자동 입력 완료!');
+}
+
+function closeOcrResult(){
+  document.getElementById('ocrResultModal').style.display = 'none';
+  ocrParsed = null;
 }
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────

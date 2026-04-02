@@ -935,7 +935,6 @@ async function quickExport(){
     if(!formatted){ toast('❗ 접수번호를 입력해주세요.'); return; }
     qData.accNo = formatted;
 
-    // 판정 버튼 상태 읽기
     qData.verdicts.state = document.getElementById('qsPass')?.classList.contains('on') ? 'pass'
                          : document.getElementById('qsFail')?.classList.contains('on') ? 'fail' : null;
     qData.verdicts.heat  = document.getElementById('qhPass')?.classList.contains('on') ? 'pass'
@@ -943,7 +942,7 @@ async function quickExport(){
 
     const overlay = document.getElementById('loadingOverlay');
     const ltxt    = document.getElementById('loadingTxt');
-    ltxt.textContent = '분석표 생성 중... (10~20초 소요)';
+    ltxt.textContent = '분석표 생성 중...';
     overlay.classList.remove('hidden');
 
     // 사진 리사이즈
@@ -952,82 +951,63 @@ async function quickExport(){
       return {...ph, data: await resizeImage(ph.data, 600, 450)};
     }));
 
-    // 체크된 주사항/시험조건 기본값 (빠른 모드용 기본 체크)
     const defaultChecks = {
       cond_state: true, cond_heat: true, note_crit: true, note_se: true, note_5min: true
     };
 
-    // 시편 데이터 변환 (dir 기반)
-    const dirs = qData.dir==='both'?['MD','TD']:['MD'];
-    const stateArr = (qData.state[dirs[0]]||[]).map(r=>({
-      dist: r.se?'0':(r.dist||''), time: r.se?'0':(r.time||''), thick: r.thick||'', se: r.se||false
-    }));
-    const heatArr = (qData.heat[dirs[0]]||[]).map(r=>({
-      dist: r.se?'0':(r.dist||''), time: r.se?'0':(r.time||''), thick: r.thick||'', se: r.se||false
-    }));
-    const stateArr2 = dirs.length>1 ? (qData.state[dirs[1]]||[]).map(r=>({
-      dist: r.se?'0':(r.dist||''), time: r.se?'0':(r.time||''), thick: r.thick||'', se: r.se||false
-    })) : [];
-    const heatArr2 = dirs.length>1 ? (qData.heat[dirs[1]]||[]).map(r=>({
-      dist: r.se?'0':(r.dist||''), time: r.se?'0':(r.time||''), thick: r.thick||'', se: r.se||false
-    })) : [];
+    // buildXLSX용 data 구조 구성
+    const dirs = qData.dir==='both'?['MD','TD']:[qData.dir||'MD'];
+    // mdata 형식으로 변환
+    const qMdata = {state:{}, heat:{}};
+    ['state','heat'].forEach(m=>{
+      dirs.forEach(d=>{
+        const key = m+'_'+d;
+        qMdata[m][key] = {};
+        const rows = qData[m][d]||[];
+        for(let i=0;i<5;i++){
+          const r = rows[i]||{dist:'',time:'',thick:'',se:false};
+          const dist = r.se?'0':(r.dist||'');
+          const time = r.se?'0':(r.time||'');
+          let rate = '';
+          if(!r.se && dist && time && parseFloat(time)>0)
+            rate = (parseFloat(dist)/parseFloat(time)*60).toFixed(1);
+          qMdata[m][key][i+1] = {dist, time, thick:r.thick||'', rate, se:r.se||false};
+        }
+      });
+    });
 
-    // 5개 미만이면 빈 값으로 채우기
-    const padTo5 = arr => { while(arr.length<5) arr.push({dist:'',time:'',thick:'',se:false}); return arr; };
-
-    const payload = {
-      accNo:        formatted,
-      prodName:     '',
-      tester:       '',
-      labDate:      today(),
-      statePeriod:  '',
-      heatPeriod:   '',
-      method:       'MS300-08 : Rev.13',
-      equipment:    '',
-      roomTemp:     '( 21 ± 5 ) ℃',
-      roomHumid:    '( 55 ± 5 ) %',
-      dir:          qData.dir,
-      dirLabel0:    qData.dir==='TD' ? '가로\n(Width)' : '세로\n(Length)',
-      dirLabel1:    qData.dir==='both' ? '가로\n(Width)' : '',
-      state:        padTo5(stateArr),
-      heat:         padTo5(heatArr),
-      state2:       stateArr2.length ? padTo5(stateArr2) : [],
-      heat2:        heatArr2.length  ? padTo5(heatArr2)  : [],
-      activeState:  true,
-      activeHeat:   true,
-      stateVerdict: qData.verdicts.state==='pass' ? '합 격(Pass)'
-                  : qData.verdicts.state==='fail' ? '불합격(Fail)' : '합 격(Pass)  /  불합격(Fail)',
-      heatVerdict:  qData.verdicts.heat==='pass'  ? '합 격(Pass)'
-                  : qData.verdicts.heat==='fail'  ? '불합격(Fail)' : '합 격(Pass)  /  불합격(Fail)',
-      condKo: buildCondKo(defaultChecks),
-      condEn: buildCondEn(defaultChecks),
-      noteKo: buildNoteKo(defaultChecks),
-      noteEn: buildNoteEn(defaultChecks),
-      remark: '',
-      lang:   lang,
-      photos: processedPhotos,
+    const data = {
+      accNo:       formatted,
+      prodName:    '',
+      tester:      '',
+      labDate:     today(),
+      statePeriod: '',
+      heatPeriod:  '',
+      method:      'MS300-08 : Rev.13',
+      equipment:   '',
+      roomTemp:    '( 21 ± 5 ) ℃',
+      roomHumid:   '( 55 ± 5 ) %',
+      lang:        lang,
+      dirs:        dirs,
+      dir:         qData.dir||'MD',
+      activeTypes: {state:true, heat:true},
+      mdata:       qMdata,
+      verdicts:    {
+        state: qData.verdicts.state,
+        heat:  qData.verdicts.heat,
+      },
+      checks:      defaultChecks,
+      thickness:   '',
+      stateThickNote: '',
+      heatThickNote:  '',
+      photos:      processedPhotos,
     };
 
-    const bodyStr = JSON.stringify(payload);
-    console.log('📦 payload 크기:', (bodyStr.length / 1024).toFixed(1) + ' KB');
-
-    const res  = await fetch(GAS_URL, {
-      method:  'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body:    bodyStr,
-    });
-    const rawText = await res.text();
-    console.log('📨 GAS 응답 원문:', rawText);
-    let json;
-    try { json = JSON.parse(rawText); }
-    catch(e){ throw new Error('GAS 응답 파싱 실패: ' + rawText.slice(0,200)); }
+    const fname = `연소성분석표_${formatted}_${today().replace(/-/g,'')}.xlsx`;
+    buildXLSX(data, fname);
     overlay.classList.add('hidden');
+    toast('✅ 분석표 다운로드 완료!');
 
-    if(json.success && json.url){
-      showDownloadModal(json.url, formatted);
-    } else {
-      throw new Error(json.error || JSON.stringify(json));
-    }
   } catch(err){
     document.getElementById('loadingOverlay').classList.add('hidden');
     toast('❗ 오류: ' + err.message);
@@ -1499,59 +1479,18 @@ async function exportExcel(){
   const overlay = document.getElementById('loadingOverlay');
   const ltxt    = document.getElementById('loadingTxt');
 
-  // ── 유효성 검사 ────────────────────────────────────────────────────────────
-  if(!g('accNo'))  { toast('❗ 접수번호를 입력해주세요.'); return; }
+  if(!g('accNo')){ toast('❗ 접수번호를 입력해주세요.'); return; }
 
-  ltxt.textContent = '분석표 생성 중... (10~20초 소요)';
+  ltxt.textContent = '분석표 생성 중...';
   overlay.classList.remove('hidden');
 
   try{
-    // ── 전송 데이터 구성 ───────────────────────────────────────────────────
-    const raw = collect();
+    const raw  = collect();
     const dirs = getDirs();
 
-    // 상태조절/고온방치 기간 날짜 조합
     const sfrom = g('statePeriodFrom'), sto = g('statePeriodTo');
     const hfrom = g('heatPeriodFrom'),  hto = g('heatPeriodTo');
     const fmtDate = s => s ? s.replace(/-/g,'.') : '';
-    const statePeriodStr = sfrom||sto ? fmtDate(sfrom)+'~'+fmtDate(sto) : '';
-    const heatPeriodStr  = hfrom||hto ? fmtDate(hfrom)+'~'+fmtDate(hto) : '';
-
-    // 상태(State) 시편 데이터 — 두께 각 행에서 가져오기
-    const stateArr = [];
-    const heatArr  = [];
-    for(let i = 1; i <= 5; i++){
-      const sKey = 'state' + (dirs[0] ? '_'+dirs[0] : '');
-      const hKey = 'heat'  + (dirs[0] ? '_'+dirs[0] : '');
-      const sd = (raw.mdata.state[sKey] || {})[i] || {};
-      const hd = (raw.mdata.heat[hKey]  || {})[i] || {};
-      stateArr.push({ dist: sd.dist||'', time: sd.time||'', thick: sd.thick||'', se: sd.se||false });
-      heatArr.push({  dist: hd.dist||'', time: hd.time||'', thick: hd.thick||'', se: hd.se||false });
-    }
-
-    // 시험조건 / 주사항 텍스트 생성 (체크된 항목만)
-    const checks = raw.checks;
-    const condKo = buildCondKo(checks);
-    const condEn = buildCondEn(checks);
-    const noteKo = buildNoteKo(checks);
-    const noteEn = buildNoteEn(checks);
-
-    // 방향 레이블 (C16, C21용)
-    const dirLabel0 = dirs[0] === 'MD' ? '세로\n(Length)' : dirs[0] === 'TD' ? '가로\n(Width)' : '';
-    const dirLabel1 = dirs[1] === 'TD' ? '가로\n(Width)' : dirs[1] === 'MD' ? '세로\n(Length)' : '';
-
-    // MD+TD 두 번째 방향 데이터
-    const stateArr2 = [], heatArr2 = [];
-    if(dirs.length > 1){
-      for(let i = 1; i <= 5; i++){
-        const sKey2 = 'state_' + dirs[1];
-        const hKey2 = 'heat_'  + dirs[1];
-        const sd2 = (raw.mdata.state[sKey2] || {})[i] || {};
-        const hd2 = (raw.mdata.heat[hKey2]  || {})[i] || {};
-        stateArr2.push({ dist: sd2.dist||'', time: sd2.time||'', thick: sd2.thick||'', se: sd2.se||false });
-        heatArr2.push({  dist: hd2.dist||'', time: hd2.time||'', thick: hd2.thick||'', se: hd2.se||false });
-      }
-    }
 
     // 사진 리사이즈
     const processedPhotos = await Promise.all(raw.photos.map(async ph => {
@@ -1559,60 +1498,34 @@ async function exportExcel(){
       return {...ph, data: await resizeImage(ph.data, 600, 450)};
     }));
 
-    const payload = {
-      accNo:         g('accNo'),
-      prodName:      g('prodName'),
-      tester:        g('tester'),
-      labDate:       g('labDate') || g('testDate'),
-      statePeriod:   statePeriodStr,
-      heatPeriod:    heatPeriodStr,
-      method:        g('method'),
-      equipment:     g('equipment'),
-      roomTemp:      g('roomTemp'),
-      roomHumid:     g('roomHumid'),
-      dir:           dir,
-      dirLabel0:     dirLabel0,
-      dirLabel1:     dirLabel1,
-      state:         stateArr,
-      heat:          heatArr,
-      state2:        stateArr2,
-      heat2:         heatArr2,
-      activeState:   raw.activeTypes.state,
-      activeHeat:    raw.activeTypes.heat,
-      stateVerdict:  verdicts.state === 'pass' ? '합 격(Pass)' :
-                     verdicts.state === 'fail' ? '불합격(Fail)' : '합 격(Pass)  /  불합격(Fail)',
-      heatVerdict:   verdicts.heat  === 'pass' ? '합 격(Pass)' :
-                     verdicts.heat  === 'fail' ? '불합격(Fail)' : '합 격(Pass)  /  불합격(Fail)',
-      condKo, condEn,
-      noteKo, noteEn,
-      remark:        g('stateThickNote') ?
-                     `상태 시험편 두께 : ${g('stateThickNote')} mm / Heat aging : ${g('heatThickNote')||g('stateThickNote')} mm` : '',
-      lang:          raw.lang,
-      photos:        processedPhotos,
+    const data = {
+      accNo:       g('accNo'),
+      prodName:    g('prodName'),
+      tester:      g('tester'),
+      labDate:     g('labDate') || g('testDate'),
+      statePeriod: sfrom||sto ? fmtDate(sfrom)+'~'+fmtDate(sto) : '',
+      heatPeriod:  hfrom||hto ? fmtDate(hfrom)+'~'+fmtDate(hto) : '',
+      method:      g('method'),
+      equipment:   g('equipment'),
+      roomTemp:    g('roomTemp'),
+      roomHumid:   g('roomHumid'),
+      lang:        raw.lang,
+      dirs:        dirs,
+      dir:         dir,
+      activeTypes: raw.activeTypes,
+      mdata:       raw.mdata,
+      verdicts:    raw.verdicts,
+      checks:      raw.checks,
+      thickness:   g('stateThickNote'),
+      stateThickNote: g('stateThickNote'),
+      heatThickNote:  g('heatThickNote'),
+      photos:      processedPhotos,
     };
 
-    // ── GAS 호출 ───────────────────────────────────────────────────────────
-    const bodyStr2 = JSON.stringify(payload);
-    console.log('📦 payload 크기:', (bodyStr2.length / 1024).toFixed(1) + ' KB');
-
-    const res  = await fetch(GAS_URL, {
-      method:  'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body:    bodyStr2,
-    });
-    const rawText2 = await res.text();
-    console.log('📨 GAS 응답 원문:', rawText2);
-    let json;
-    try { json = JSON.parse(rawText2); }
-    catch(e){ throw new Error('GAS 응답 파싱 실패: ' + rawText2.slice(0,200)); }
-
+    const fname = `연소성분석표_${g('accNo')}_${today().replace(/-/g,'')}.xlsx`;
+    buildXLSX(data, fname);
     overlay.classList.add('hidden');
-
-    if(json.success && json.url){
-      showDownloadModal(json.url, g('accNo'));
-    } else {
-      throw new Error(json.error || JSON.stringify(json));
-    }
+    toast('✅ 분석표 다운로드 완료!');
 
   } catch(err){
     overlay.classList.add('hidden');

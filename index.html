@@ -1933,6 +1933,45 @@ async function resizeImage(dataUrl, maxW, maxH){
   });
 }
 
+// OCR 전용 이미지 전처리: 고해상도 유지 + 대비 강화 + 선명도 향상
+async function enhanceImageForOcr(dataUrl){
+  return new Promise(res=>{
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 2000;
+      let w = img.width, h = img.height;
+      if(w > MAX || h > MAX){
+        const r = Math.min(MAX/w, MAX/h);
+        w = Math.round(w*r); h = Math.round(h*r);
+      }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+
+      // 픽셀단위: 그레이스케일 변환 + 대비 강화
+      const imgData = ctx.getImageData(0, 0, w, h);
+      const d = imgData.data;
+      const contrast = 1.5;
+      const factor = (259 * (contrast * 128 + 255)) / (255 * (259 - contrast * 128));
+      for(let i = 0; i < d.length; i += 4){
+        // 그레이스케일
+        let gray = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+        // 대비 강화
+        gray = factor * (gray - 128) + 128;
+        gray = Math.max(0, Math.min(255, gray));
+        // 배경 노이즈 제거: 밝은 회색은 흰색으로
+        gray = gray > 188 ? 255 : gray;
+        d[i] = d[i+1] = d[i+2] = gray;
+      }
+      ctx.putImageData(imgData, 0, 0);
+
+      res(c.toDataURL('image/jpeg', 0.95));
+    };
+    img.src = dataUrl;
+  });
+}
+
 // ─── OCR: 수기 기록지 자동 인식 ──────────────────────────────────────────────
 let ocrStream = null;
 let ocrFacing = 'environment';
@@ -2004,8 +2043,10 @@ async function runOcr(dataUrl){
   overlay.classList.remove('hidden');
 
   try{
-    const resized = await resizeImage(dataUrl, 1200, 1600);
-    const b64 = resized.split(',')[1];
+    ltxt.textContent = '🔍 이미지 전처리 중...';
+    const enhanced = await enhanceImageForOcr(dataUrl);
+    const b64 = enhanced.split(',')[1];
+    ltxt.textContent = '🔍 AI가 기록지를 읽는 중...';
 
     const prompt = `이 사진은 자동차 내장재 연소성 시험의 수기 기록지입니다. JSON으로만 응답하세요. 다른 텍스트 없이 JSON만 출력하세요.
 
@@ -2043,8 +2084,8 @@ async function runOcr(dataUrl){
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 1000,
+        model: 'claude-opus-4-5',
+        max_tokens: 1200,
         messages: [{
           role: 'user',
           content: [

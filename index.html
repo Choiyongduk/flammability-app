@@ -1006,18 +1006,25 @@ async function quickExport(){
       photos: processedPhotos,
     };
 
+    const bodyStr = JSON.stringify(payload);
+    console.log('📦 payload 크기:', (bodyStr.length / 1024).toFixed(1) + ' KB');
+
     const res  = await fetch(GAS_URL, {
       method:  'POST',
       headers: { 'Content-Type': 'text/plain' },
-      body:    JSON.stringify(payload),
+      body:    bodyStr,
     });
-    const json = await res.json();
+    const rawText = await res.text();
+    console.log('📨 GAS 응답 원문:', rawText);
+    let json;
+    try { json = JSON.parse(rawText); }
+    catch(e){ throw new Error('GAS 응답 파싱 실패: ' + rawText.slice(0,200)); }
     overlay.classList.add('hidden');
 
     if(json.success && json.url){
       showDownloadModal(json.url, formatted);
     } else {
-      throw new Error(json.error || '서버 오류');
+      throw new Error(json.error || JSON.stringify(json));
     }
   } catch(err){
     document.getElementById('loadingOverlay').classList.add('hidden');
@@ -1583,20 +1590,26 @@ async function exportExcel(){
     };
 
     // ── GAS 호출 ───────────────────────────────────────────────────────────
+    const bodyStr2 = JSON.stringify(payload);
+    console.log('📦 payload 크기:', (bodyStr2.length / 1024).toFixed(1) + ' KB');
+
     const res  = await fetch(GAS_URL, {
       method:  'POST',
-      headers: { 'Content-Type': 'text/plain' }, // GAS CORS 우회
-      body:    JSON.stringify(payload),
+      headers: { 'Content-Type': 'text/plain' },
+      body:    bodyStr2,
     });
-    const json = await res.json();
+    const rawText2 = await res.text();
+    console.log('📨 GAS 응답 원문:', rawText2);
+    let json;
+    try { json = JSON.parse(rawText2); }
+    catch(e){ throw new Error('GAS 응답 파싱 실패: ' + rawText2.slice(0,200)); }
 
     overlay.classList.add('hidden');
 
     if(json.success && json.url){
-      // 다운로드 링크 열기 + 카카오톡 공유 안내
       showDownloadModal(json.url, g('accNo'));
     } else {
-      throw new Error(json.error || '서버 오류');
+      throw new Error(json.error || JSON.stringify(json));
     }
 
   } catch(err){

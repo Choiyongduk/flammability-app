@@ -980,12 +980,14 @@ async function quickExport(){
       prodName:     '',
       tester:       '',
       labDate:      today(),
+      statePeriod:  '',
+      heatPeriod:   '',
       method:       'MS300-08 : Rev.13',
       equipment:    '',
       roomTemp:     '( 21 ± 5 ) ℃',
       roomHumid:    '( 55 ± 5 ) %',
       dir:          qData.dir,
-      dirLabel0:    qData.dir==='MD'||qData.dir==='both' ? '세로\n(Length)' : '',
+      dirLabel0:    qData.dir==='TD' ? '가로\n(Width)' : '세로\n(Length)',
       dirLabel1:    qData.dir==='both' ? '가로\n(Width)' : '',
       state:        padTo5(stateArr),
       heat:         padTo5(heatArr),
@@ -2125,6 +2127,28 @@ function showOcrResult(data){
       💬 ${data.notes}
     </div>`;
 
+  // 범위 벗어난 값 사전 검사
+  const outOfRange = [];
+  ['state','heat'].forEach(m=>{
+    const dirs2 = data.dir==='both' ? ['MD','TD'] : ['MD'];
+    dirs2.forEach(d=>{
+      (data[m]?.[d]||[]).forEach((r,i)=>{
+        if(r.se) return;
+        const dist = parseFloat(r.dist), time = parseFloat(r.time), thick = parseFloat(r.thick);
+        if(!isNaN(dist)  && (dist  < 50  || dist  > 300)) outOfRange.push(`${m==='state'?'상태':'고온'}-${d} No.${i+1} 거리 ${r.dist}mm`);
+        if(!isNaN(time)  && (time  < 60  || time  > 300)) outOfRange.push(`${m==='state'?'상태':'고온'}-${d} No.${i+1} 시간 ${r.time}s`);
+        if(!isNaN(thick) && (thick < 1   || thick > 12))  outOfRange.push(`${m==='state'?'상태':'고온'}-${d} No.${i+1} 두께 ${r.thick}mm`);
+      });
+    });
+  });
+  if(outOfRange.length){
+    html += `<div style="padding:10px;background:#fff5f5;border:1px solid var(--rd);border-radius:var(--rs);margin-bottom:10px;">
+      <div style="font-size:12px;font-weight:700;color:var(--rd);margin-bottom:5px;">⚠️ 범위 벗어난 값 — 적용 전 확인하세요</div>
+      ${outOfRange.map(s=>`<div style="font-size:11px;color:var(--rd);margin-top:2px;">• ${s}</div>`).join('')}
+      <div style="font-size:10px;color:var(--tx3);margin-top:6px;">정상 범위: 거리 50~300mm / 시간 60~300s / 두께 1~12mm</div>
+    </div>`;
+  }
+
   // 방향 배지
   const dirMap = {'none':'방향없음','MD':'MD','TD':'TD','both':'MD+TD'};
   html += `<div style="margin-bottom:10px;font-size:12px;color:var(--tx2);">방향: <strong>${dirMap[data.dir]||data.dir}</strong></div>`;
@@ -2146,12 +2170,22 @@ function showOcrResult(data){
             <th style="padding:5px;border:1px solid var(--bd);text-align:center;">결과</th>
           </tr></thead><tbody>`;
       rows.forEach((r,i)=>{
+        const dist  = parseFloat(r.dist);
+        const time  = parseFloat(r.time);
+        const thick = parseFloat(r.thick);
+        const distOk  = r.se || isNaN(dist)  || (dist  >= 50  && dist  <= 300);
+        const timeOk  = r.se || isNaN(time)  || (time  >= 60  && time  <= 300);
+        const thickOk = isNaN(thick) || (thick >= 1 && thick <= 12);
+        const rowWarn = !distOk || !timeOk || !thickOk;
+
+        const distCell  = r.se ? '—' : (r.dist ? `<span style="${distOk?'':'color:var(--rd);font-weight:700;'}">${r.dist}${distOk?'':' ⚠️'}</span>` : '-');
+        const timeCell  = r.se ? '—' : (r.time ? `<span style="${timeOk?'':'color:var(--rd);font-weight:700;'}">${r.time}${timeOk?'':' ⚠️'}</span>` : '-');
         const result = r.se ? '<span style="color:var(--gr);font-weight:700;">SE</span>'
                              : (r.dist&&r.time ? (parseFloat(r.dist)/parseFloat(r.time)*60).toFixed(1)+' mm/min' : '-');
-        html += `<tr>
+        html += `<tr style="${rowWarn?'background:#fff5f5;':''}">
           <td style="padding:5px;border:1px solid var(--bd);text-align:center;">${i+1}</td>
-          <td style="padding:5px;border:1px solid var(--bd);text-align:center;">${r.se?'—':r.dist||'-'}</td>
-          <td style="padding:5px;border:1px solid var(--bd);text-align:center;">${r.se?'—':r.time||'-'}</td>
+          <td style="padding:5px;border:1px solid var(--bd);text-align:center;">${distCell}</td>
+          <td style="padding:5px;border:1px solid var(--bd);text-align:center;">${timeCell}</td>
           <td style="padding:5px;border:1px solid var(--bd);text-align:center;">${result}</td>
         </tr>`;
       });

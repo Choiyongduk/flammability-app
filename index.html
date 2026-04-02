@@ -317,12 +317,12 @@ canvas#snapCanvas{display:none;}
       </div>
 
       <!-- 인식된 데이터 미리보기 -->
-      <div id="qDataPreview" style="display:none;margin-top:12px;padding:10px;background:var(--grl);border-radius:var(--rs);border:1px solid var(--gr);">
-        <div style="font-size:12px;font-weight:700;color:var(--gr);margin-bottom:6px;">✅ 데이터 인식 완료</div>
-        <div id="qDataSummary" style="font-size:12px;color:var(--tx2);line-height:1.6;"></div>
-        <button onclick="showView('form')" style="margin-top:8px;padding:5px 10px;background:transparent;border:1px solid var(--gr);border-radius:var(--rs);font-size:11px;color:var(--gr);cursor:pointer;">
-          수정하기 →
-        </button>
+      <div id="qDataPreview" style="display:none;margin-top:12px;">
+        <div style="padding:8px 10px;background:var(--grl);border-radius:var(--rs);border:1px solid var(--gr);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:12px;font-weight:700;color:var(--gr);">✅ 데이터 인식 완료</div>
+          <button onclick="showView('form')" style="padding:4px 9px;background:transparent;border:1px solid var(--gr);border-radius:var(--rs);font-size:11px;color:var(--gr);cursor:pointer;">상세 수정 →</button>
+        </div>
+        <div id="qTableArea"></div>
       </div>
     </div>
   </div>
@@ -726,34 +726,72 @@ function renderQPhotos(){
   });
 }
 
-// OCR 완료 후 빠른 모드 미리보기 업데이트
+// OCR 완료 후 빠른 모드 데이터 테이블 렌더링
 function updateQDataPreview(){
   const preview = document.getElementById('qDataPreview');
-  const summary = document.getElementById('qDataSummary');
-  if(!preview||!summary) return;
+  const tableArea = document.getElementById('qTableArea');
+  if(!preview || !tableArea) return;
 
-  // 데이터 요약
-  let lines = [];
   const dirs = getDirs();
+  let hasData = false;
+
+  tableArea.innerHTML = '';
+
   ['state','heat'].forEach(m=>{
     dirs.forEach(d=>{
       const key = m+(d?'_'+d:'');
       const rows = mdata[m][key]||{};
       const filled = Object.values(rows).filter(r=>r.dist!==''||r.se);
-      if(filled.length>0){
-        const lbl = m==='state'?'상태':'고온방치';
-        const dirLbl = d ? ` (${d})` : '';
-        const seCount = filled.filter(r=>r.se).length;
-        const rates = filled.filter(r=>!r.se&&r.rate).map(r=>parseFloat(r.rate));
-        const maxR = rates.length ? Math.max(...rates).toFixed(1) : '-';
-        lines.push(`${lbl}${dirLbl}: ${filled.length}개 입력, Max ${maxR} mm/min${seCount?', SE '+seCount+'개':''}`);
+      if(!filled.length) return;
+      hasData = true;
+
+      const lbl = m==='state'?'상태 (State)':'고온방치 (Heat aging)';
+      const dirBadge = d ? `<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--orl);color:var(--or);font-weight:700;margin-left:4px;">${d}</span>` : '';
+
+      const seCount = filled.filter(r=>r.se).length;
+      const rates = filled.filter(r=>!r.se&&r.rate).map(r=>parseFloat(r.rate));
+      const maxR = rates.length ? Math.max(...rates) : null;
+      const statusColor = maxR===null ? 'var(--gr)' : maxR<=80 ? 'var(--gr)' : 'var(--rd)';
+      const statusText = maxR===null ? (seCount?'SE — 합격':'−') : (maxR<=80?`Max ${maxR.toFixed(1)} ✓`:`Max ${maxR.toFixed(1)} ✗`);
+
+      let tbody = '';
+      for(let i=1;i<=5;i++){
+        const r = rows[i]||{dist:'',time:'',rate:'',se:false};
+        const rateStr = r.se ? '<span style="color:var(--gr);font-weight:700;">SE</span>'
+                      : (r.rate ? `<span style="color:var(--ac);font-weight:600;">${r.rate}</span>` : '<span style="color:var(--tx3);">−</span>');
+        const distStr = r.se ? '—' : (r.dist||'−');
+        const timeStr = r.se ? '—' : (r.time||'−');
+        tbody += `<tr>
+          <td style="padding:4px 3px;border-bottom:1px solid var(--bd);text-align:center;font-size:12px;color:var(--tx3);">${i}</td>
+          <td style="padding:4px 3px;border-bottom:1px solid var(--bd);text-align:center;font-size:12px;">${distStr}</td>
+          <td style="padding:4px 3px;border-bottom:1px solid var(--bd);text-align:center;font-size:12px;">${timeStr}</td>
+          <td style="padding:4px 3px;border-bottom:1px solid var(--bd);text-align:center;font-size:12px;">${rateStr}</td>
+        </tr>`;
       }
+
+      tableArea.innerHTML += `
+        <div style="margin-bottom:10px;background:var(--s);border:1px solid var(--bd);border-radius:var(--rs);overflow:hidden;">
+          <div style="padding:7px 10px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:11px;font-weight:700;color:var(--tx2);display:flex;align-items:center;">${lbl}${dirBadge}</div>
+            <div style="font-size:11px;font-weight:700;color:${statusColor};">${statusText}</div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;min-width:240px;">
+              <thead><tr style="background:var(--s2);">
+                <th style="font-size:10px;font-weight:700;color:var(--tx2);padding:5px 3px;border-bottom:2px solid var(--bd);text-align:center;">No.</th>
+                <th style="font-size:10px;font-weight:700;color:var(--tx2);padding:5px 3px;border-bottom:2px solid var(--bd);text-align:center;">거리<br><small>(mm)</small></th>
+                <th style="font-size:10px;font-weight:700;color:var(--tx2);padding:5px 3px;border-bottom:2px solid var(--bd);text-align:center;">시간<br><small>(s)</small></th>
+                <th style="font-size:10px;font-weight:700;color:var(--tx2);padding:5px 3px;border-bottom:2px solid var(--bd);text-align:center;">속도<br><small>(mm/min)</small></th>
+              </tr></thead>
+              <tbody>${tbody}</tbody>
+            </table>
+          </div>
+        </div>`;
     });
   });
 
-  if(lines.length > 0){
+  if(hasData){
     preview.style.display = 'block';
-    summary.innerHTML = lines.join('<br>');
   }
 }
 
@@ -794,20 +832,34 @@ function autoVerdict(){
   ['state','heat'].forEach(m=>{
     if(!activeTypes[m]) return;
     let rates = [];
+    let hasSE = false;
+    let hasData = false;
     getDirs().forEach(d=>{
       const key = m+(d?'_'+d:'');
       if(!mdata[m][key]) return;
       for(let i=1;i<=N;i++){
         const r = mdata[m][key][i];
-        if(r && !r.se && r.rate && !isNaN(parseFloat(r.rate)))
+        if(!r) continue;
+        if(r.se){ hasSE = true; hasData = true; }
+        else if(r.rate && !isNaN(parseFloat(r.rate))){
           rates.push(parseFloat(r.rate));
+          hasData = true;
+        } else if(r.dist!==undefined && r.dist!==''){
+          hasData = true;
+        }
       }
     });
-    if(!rates.length) return;
-    const maxRate = Math.max(...rates);
-    // 기준: 연소속도 최대치 80mm/min 이하
-    const v = maxRate <= 80 ? 'pass' : 'fail';
-    verdicts[m] = v;
+    if(!hasData) return;
+    let v;
+    if(!rates.length){
+      // SE만 있거나 데이터 있으면 합격
+      v = hasSE ? 'pass' : null;
+    } else {
+      const maxRate = Math.max(...rates);
+      // 기준: 연소속도 최대치 80mm/min 이하 또는 SE
+      v = maxRate <= 80 ? 'pass' : 'fail';
+    }
+    if(v) verdicts[m] = v;
   });
   // 빠른 모드 판정 버튼 동기화
   syncQVerdicts();
@@ -840,14 +892,21 @@ function applyToQData(parsed){
   ['state','heat'].forEach(m=>{
     const dirs = qData.dir==='both'?['MD','TD']:['MD'];
     let rates = [];
+    let hasSE = false;
+    let hasData = false;
     dirs.forEach(d=>{
       (qData[m][d]||[]).forEach(r=>{
-        if(!r.se && r.dist && r.time && parseFloat(r.time)>0){
+        if(r.se){ hasSE = true; hasData = true; }
+        else if(r.dist && r.time && parseFloat(r.time)>0){
           rates.push(parseFloat(r.dist)/parseFloat(r.time)*60);
-        }
+          hasData = true;
+        } else if(r.dist){ hasData = true; }
       });
     });
-    if(rates.length){
+    if(!hasData) return;
+    if(!rates.length){
+      qData.verdicts[m] = hasSE ? 'pass' : null;
+    } else {
       qData.verdicts[m] = Math.max(...rates) <= 80 ? 'pass' : 'fail';
     }
   });
@@ -1962,7 +2021,7 @@ async function runOcr(dataUrl){
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
+        model: 'claude-opus-4-6',
         max_tokens: 1000,
         messages: [{
           role: 'user',

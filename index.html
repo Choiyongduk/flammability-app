@@ -1993,8 +1993,19 @@ async function exportExcel(){
       }
     }
 
-    // photos는 GAS 처리 시간 초과 원인 — 제외하고 전송
-    // (v5 GAS가 photos를 처리하려 할 때 메모리/시간 초과로 서버 오류 발생)
+    // 사진 압축 후 포함 (200x150으로 충분히 줄여서 GAS 처리 시간 초과 방지)
+    const processedPhotos = await Promise.all(raw.photos.map(async ph => {
+      if(!ph.data) return {
+        labelKo: ph.labelKo, labelEn: ph.labelEn,
+        data: null, caption: ph.caption||''
+      };
+      const resized = await resizeImage(ph.data, 200, 150);
+      return {
+        labelKo: ph.labelKo, labelEn: ph.labelEn,
+        data: resized,   // data:image/jpeg;base64,... 형태
+        caption: ph.caption||''
+      };
+    }));
 
     const payload = {
       accNo:         g('accNo'),
@@ -2024,7 +2035,7 @@ async function exportExcel(){
       noteKo, noteEn,
       remark: '',
       lang:   raw.lang,
-      photos: [],   // 사진 제외 — GAS 처리 시간 초과 방지
+      photos: processedPhotos,
     };
 
     // ── GAS 호출 ───────────────────────────────────────────────────────────

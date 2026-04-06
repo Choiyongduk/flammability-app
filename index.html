@@ -6,257 +6,462 @@
 <title>연소성 시험 분석표</title>
 <style>
 :root {
-  --bg:#f0f2f5; --s:#fff; --s2:#f6f8fa; --s3:#eef0f3;
-  --bd:#e1e4e8; --bd2:#c9cdd4; --bd3:#9ba3af;
-  --tx:#111827; --tx2:#374151; --tx3:#6b7280;
-  --ac:#1a56db; --acl:#eff5ff; --acd:#1341b0;
-  --gr:#0a7a42; --grl:#e8f7ef;
-  --rd:#b91c1c; --rdl:#fef2f2;
-  --or:#c2410c; --orl:#fff7ed;
-  --r:10px; --rs:6px;
-  /* 반응형 기준값 */
-  --content-max:780px;
-  --pad:10px;
-  --fs-base:14px;
-  --fs-sm:12px;
-  --fs-xs:11px;
+  /* ── 컬러 팔레트 ── */
+  --bg:      #0f1117;
+  --bg2:     #161820;
+  --s:       #1c1f2b;
+  --s2:      #212532;
+  --s3:      #262a38;
+
+  --bd:      #2e3347;
+  --bd2:     #3a3f55;
+  --bd3:     #4a506a;
+
+  --tx:      #e8eaf0;
+  --tx2:     #b0b6cc;
+  --tx3:     #6b7290;
+
+  --gold:    #c9a84c;
+  --gold2:   #e8c96e;
+  --goldl:   rgba(201,168,76,.12);
+  --goldb:   rgba(201,168,76,.25);
+
+  --ac:      #3d6cca;
+  --acl:     rgba(61,108,202,.15);
+  --acd:     #2d55a8;
+
+  --gr:      #1a6e47;
+  --grl:     rgba(26,110,71,.18);
+  --grt:     #2ecc82;
+
+  --rd:      #8b1c1c;
+  --rdl:     rgba(139,28,28,.18);
+  --rdt:     #f06060;
+
+  --r:  8px;
+  --rs: 5px;
+  --content-max: 780px;
+  --pad: 10px;
+  --fs-base: 14px;
+  --fs-sm:   12px;
+  --fs-xs:   11px;
 }
 
 /* ── RESET ── */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{background:var(--bg);font-family:'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;font-size:var(--fs-base);color:var(--tx);min-height:100vh;overflow-x:hidden;}
+body{
+  background:var(--bg);
+  font-family:'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;
+  font-size:var(--fs-base);
+  color:var(--tx);
+  min-height:100vh;
+  overflow-x:hidden;
+}
 
 /* ── HEADER ── */
-.hdr{background:var(--s);border-bottom:1px solid var(--bd);padding:0 var(--pad);position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;height:50px;width:100%;}
-.hdr-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.hdr{
+  background:var(--s);
+  border-bottom:1px solid var(--bd);
+  padding:0 var(--pad);
+  position:sticky;top:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  height:52px;
+}
+.hdr-title{
+  font-size:13px;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--gold);
+  display:flex;align-items:center;gap:8px;white-space:nowrap;
+}
+.hdr-title::before{
+  content:'';width:3px;height:16px;
+  background:linear-gradient(180deg,var(--gold),var(--gold2));
+  border-radius:2px;flex-shrink:0;
+}
 .hdr-right{display:flex;gap:5px;align-items:center;flex-shrink:0;}
 
 /* ── LANG ── */
-.lang-seg{display:flex;background:var(--s3);border:1px solid var(--bd);border-radius:20px;padding:2px;gap:1px;}
-.lang-btn{padding:3px 8px;border-radius:16px;font-size:11px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--tx3);transition:all .15s;white-space:nowrap;}
-.lang-btn.on{background:var(--ac);color:#fff;}
+.lang-seg{
+  display:flex;background:var(--bg2);
+  border:1px solid var(--bd);border-radius:4px;
+  padding:2px;gap:2px;
+}
+.lang-btn{
+  padding:4px 10px;border-radius:3px;
+  font-size:11px;font-weight:600;letter-spacing:.5px;
+  cursor:pointer;border:none;background:transparent;
+  color:var(--tx3);transition:all .15s;white-space:nowrap;
+}
+.lang-btn.on{background:var(--gold);color:#0f1117;}
 
 /* ── BUTTONS ── */
-.btn{padding:6px 11px;border-radius:var(--rs);font-size:var(--fs-sm);font-weight:600;cursor:pointer;border:1px solid var(--bd2);background:var(--s);color:var(--tx2);display:inline-flex;align-items:center;gap:4px;white-space:nowrap;transition:all .15s;}
-.btn:active{transform:scale(.97);}
+.btn{
+  padding:8px 14px;border-radius:var(--rs);
+  font-size:var(--fs-sm);font-weight:600;letter-spacing:.3px;
+  cursor:pointer;border:1px solid var(--bd2);
+  background:var(--s2);color:var(--tx2);
+  display:inline-flex;align-items:center;gap:5px;
+  white-space:nowrap;transition:all .18s;
+}
+.btn:active{opacity:.8;transform:scale(.98);}
 .btn-pr{background:var(--ac);color:#fff;border-color:var(--ac);}
-.btn-gr{background:var(--gr);color:#fff;border-color:var(--gr);}
-.btn-sm{padding:5px 9px;font-size:11px;}
+.btn-gr{
+  background:linear-gradient(135deg,#1a6e47,#145c3b);
+  color:#fff;border-color:var(--gr);
+}
+.btn-sm{padding:5px 10px;font-size:11px;}
 
 /* ── NAV ── */
-.nav{background:var(--s);border-bottom:1px solid var(--bd);display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.nav{
+  background:var(--s);
+  border-bottom:1px solid var(--bd);
+  display:flex;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
 .nav::-webkit-scrollbar{display:none;}
-.nav-tab{padding:11px 16px;font-size:13px;font-weight:600;color:var(--tx3);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;}
-.nav-tab.on{color:var(--ac);border-bottom-color:var(--ac);}
+.nav-tab{
+  padding:13px 22px;
+  font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;
+  color:var(--tx3);border-bottom:2px solid transparent;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .18s;
+}
+.nav-tab.on{color:var(--gold);border-bottom-color:var(--gold);}
 
 /* ── MAIN LAYOUT ── */
 .main{padding:var(--pad);max-width:var(--content-max);margin:0 auto;width:100%;}
 
 /* ── CARD ── */
-.card{background:var(--s);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:9px;overflow:hidden;width:100%;}
-.card-hd{padding:10px 13px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
-.card-hd-l{display:flex;align-items:center;gap:7px;}
-.ctag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--acl);color:var(--ac);}
-.ctitle{font-size:13px;font-weight:700;}
-.chev{font-size:10px;color:var(--tx3);transition:transform .2s;}
-.card-bd{padding:12px 13px;}
+.card{
+  background:var(--s);
+  border:1px solid var(--bd);
+  border-radius:var(--r);
+  margin-bottom:8px;overflow:hidden;width:100%;
+}
+.card-hd{
+  padding:11px 15px;
+  background:var(--s2);
+  border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;user-select:none;
+}
+.card-hd-l{display:flex;align-items:center;gap:8px;}
+.ctag{
+  font-size:9px;font-weight:700;letter-spacing:1px;
+  padding:2px 8px;border-radius:3px;
+  background:var(--goldl);color:var(--gold);
+  text-transform:uppercase;border:1px solid var(--goldb);
+}
+.ctitle{font-size:12px;font-weight:700;letter-spacing:.3px;color:var(--tx);}
+.chev{font-size:9px;color:var(--tx3);transition:transform .2s;}
+.card-bd{padding:14px 15px;}
 
 /* ── FIELDS ── */
 .fg{display:grid;gap:8px;width:100%;}
 .g2{grid-template-columns:repeat(2,minmax(0,1fr));}
 .g3{grid-template-columns:repeat(3,minmax(0,1fr));}
 .full{grid-column:1/-1;}
-.f{display:flex;flex-direction:column;gap:3px;min-width:0;}
-.f label{font-size:var(--fs-xs);font-weight:700;color:var(--tx2);letter-spacing:.3px;}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.f label{
+  font-size:10px;font-weight:700;letter-spacing:.8px;
+  text-transform:uppercase;color:var(--tx3);
+}
 .f input,.f select,.f textarea{
-  width:100%;padding:8px 9px;border:1px solid var(--bd);border-radius:var(--rs);
-  font-size:var(--fs-base);background:var(--s);color:var(--tx);font-family:inherit;
+  width:100%;padding:9px 10px;
+  border:1px solid var(--bd);border-radius:var(--rs);
+  font-size:var(--fs-base);
+  background:var(--bg2);color:var(--tx);
+  font-family:inherit;
   min-width:0;-webkit-appearance:none;appearance:none;
+  transition:border-color .15s, box-shadow .15s;
 }
 .f input[type=date]{font-size:13px;}
-.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 3px rgba(26,86,219,.08);}
+.f input:focus,.f select:focus,.f textarea:focus{
+  outline:none;
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(201,168,76,.12);
+}
 .f textarea{min-height:52px;resize:vertical;}
-/* select 화살표 */
-.f select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+.f select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%236b7290' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;
+  padding-right:28px;
+}
 
 /* ── TYPE CARDS ── */
-.type-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:11px;}
-.tc{border:1.5px solid var(--bd);border-radius:var(--rs);padding:10px 12px;cursor:pointer;transition:all .15s;position:relative;min-width:0;}
-.tc.on{border-color:var(--ac);background:var(--acl);}
-.tc-chk{position:absolute;top:7px;right:7px;width:18px;height:18px;border:1.5px solid var(--bd2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;}
-.tc.on .tc-chk{background:var(--ac);border-color:var(--ac);color:#fff;}
-.tc-title{font-size:13px;font-weight:700;padding-right:22px;}
-.tc-sub{font-size:10px;color:var(--tx3);margin-top:2px;}
-.tc.on .tc-title{color:var(--ac);}
+.type-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:12px;}
+.tc{
+  border:1px solid var(--bd);border-radius:var(--rs);
+  padding:11px 13px;cursor:pointer;transition:all .18s;
+  position:relative;min-width:0;background:var(--bg2);
+}
+.tc.on{border-color:var(--gold);background:var(--goldl);}
+.tc-chk{
+  position:absolute;top:8px;right:8px;
+  width:17px;height:17px;
+  border:1px solid var(--bd2);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;font-size:9px;
+  color:var(--tx3);
+}
+.tc.on .tc-chk{background:var(--gold);border-color:var(--gold);color:#0f1117;}
+.tc-title{font-size:12px;font-weight:700;letter-spacing:.2px;padding-right:22px;color:var(--tx);}
+.tc-sub{font-size:10px;color:var(--tx3);margin-top:3px;}
+.tc.on .tc-title{color:var(--gold2);}
 
 /* ── DIR PILLS ── */
 .dir-pills{display:flex;gap:5px;flex-wrap:wrap;}
-.dp{padding:5px 12px;border:1px solid var(--bd2);border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;color:var(--tx2);white-space:nowrap;}
-.dp.on{background:var(--ac);border-color:var(--ac);color:#fff;}
+.dp{
+  padding:5px 13px;
+  border:1px solid var(--bd2);border-radius:3px;
+  font-size:11px;font-weight:600;letter-spacing:.5px;
+  cursor:pointer;color:var(--tx3);white-space:nowrap;
+  transition:all .15s;text-transform:uppercase;
+}
+.dp.on{background:var(--gold);border-color:var(--gold);color:#0f1117;}
 
 /* ── MEASUREMENT TABLE ── */
 .mt-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .mt{width:100%;border-collapse:collapse;min-width:320px;}
-.mt th{font-size:10px;font-weight:700;text-align:center;color:var(--tx2);padding:6px 3px;border-bottom:2px solid var(--bd);background:var(--s2);white-space:nowrap;}
-.mt td{padding:3px 2px;border-bottom:1px solid var(--bd);text-align:center;}
+.mt th{
+  font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  text-align:center;color:var(--tx3);
+  padding:7px 4px;border-bottom:1px solid var(--bd2);
+  background:var(--bg2);white-space:nowrap;
+}
+.mt td{padding:4px 3px;border-bottom:1px solid var(--bd);text-align:center;}
 .mt tr:last-child td{border-bottom:none;}
 .mt input[type=number]{
-  width:100%;padding:6px 2px;border:1px solid var(--bd);border-radius:5px;
-  font-size:13px;text-align:center;background:var(--s);color:var(--tx);
+  width:100%;padding:7px 2px;
+  border:1px solid var(--bd);border-radius:4px;
+  font-size:13px;text-align:center;
+  background:var(--bg2);color:var(--tx);
   -webkit-appearance:none;appearance:none;
+  transition:border-color .15s;
 }
 .mt input[type=number]::-webkit-inner-spin-button,
 .mt input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
-.mt input:focus{outline:none;border-color:var(--ac);}
-.rate-cell{font-size:12px;font-weight:600;color:var(--ac);padding:5px 3px;background:var(--acl);border-radius:5px;display:block;white-space:nowrap;}
-.se-t{padding:5px 6px;border:1px solid var(--bd2);border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;background:transparent;color:var(--tx3);white-space:nowrap;}
-.se-t.on{background:var(--grl);border-color:var(--gr);color:var(--gr);}
-.row-no{font-size:12px;color:var(--tx3);font-weight:600;width:20px;}
+.mt input:focus{outline:none;border-color:var(--gold);}
+.rate-cell{
+  font-size:12px;font-weight:700;color:var(--gold2);
+  padding:5px 4px;
+  background:var(--goldl);
+  border:1px solid var(--goldb);
+  border-radius:4px;display:block;white-space:nowrap;
+}
+.se-t{
+  padding:5px 7px;
+  border:1px solid var(--bd2);border-radius:4px;
+  font-size:10px;font-weight:700;letter-spacing:.5px;
+  cursor:pointer;background:transparent;color:var(--tx3);
+  white-space:nowrap;transition:all .15s;
+}
+.se-t.on{background:var(--grl);border-color:var(--grt);color:var(--grt);}
+.row-no{font-size:11px;color:var(--tx3);font-weight:600;width:22px;}
 
 /* ── SUMMARY ── */
-.sumbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:9px 0;border-top:1px solid var(--bd);margin-top:7px;}
+.sumbar{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;padding:10px 0;
+  border-top:1px solid var(--bd);margin-top:8px;
+}
 .si{text-align:center;}
-.si-lbl{font-size:10px;font-weight:700;color:var(--tx3);margin-bottom:2px;}
-.si-val{font-size:15px;font-weight:700;}
-.ok{color:var(--gr);}
-.ng{color:var(--rd);}
+.si-lbl{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx3);margin-bottom:4px;}
+.si-val{font-size:15px;font-weight:700;color:var(--tx);}
+.ok{color:var(--grt);}
+.ng{color:var(--rdt);}
 
 /* ── VERDICT ── */
-.vrow{display:flex;gap:7px;margin-top:9px;}
-.vbtn{flex:1;padding:11px;border:1.5px solid var(--bd2);border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;background:var(--s2);color:var(--tx2);min-width:0;}
-.vbtn.pass.on{background:var(--grl);border-color:var(--gr);color:var(--gr);}
-.vbtn.fail.on{background:var(--rdl);border-color:var(--rd);color:var(--rd);}
+.vrow{display:flex;gap:7px;margin-top:10px;}
+.vbtn{
+  flex:1;padding:12px;
+  border:1px solid var(--bd2);border-radius:var(--rs);
+  font-size:13px;font-weight:700;letter-spacing:.5px;
+  cursor:pointer;background:var(--s2);color:var(--tx3);
+  min-width:0;transition:all .18s;
+}
+.vbtn.pass.on{
+  background:var(--grl);border-color:var(--grt);color:var(--grt);
+}
+.vbtn.fail.on{
+  background:var(--rdl);border-color:var(--rdt);color:var(--rdt);
+}
 
 /* ── CHECKLIST ── */
-.cs-title{font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:6px;letter-spacing:.3px;}
-.cl{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
-.ci{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;background:var(--s);}
-.ci:active{transform:scale(.99);}
-.ci.on{background:var(--acl);border-color:var(--ac);}
-.ci-box{width:16px;height:16px;min-width:16px;border:1.5px solid var(--bd2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;margin-top:1px;flex-shrink:0;}
-.ci.on .ci-box{background:var(--ac);border-color:var(--ac);color:#fff;}
-.ci-txt{font-size:13px;color:var(--tx2);line-height:1.5;}
-.ci.on .ci-txt{color:var(--ac);font-weight:600;}
-.ci-sub{font-size:11px;color:var(--tx3);display:block;margin-top:2px;line-height:1.4;}
+.cs-title{
+  font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--gold);margin-bottom:7px;
+  padding-bottom:5px;border-bottom:1px solid var(--bd);
+}
+.cl{display:flex;flex-direction:column;gap:3px;margin-bottom:12px;}
+.ci{
+  display:flex;align-items:flex-start;gap:9px;
+  padding:9px 11px;
+  border:1px solid var(--bd);border-radius:var(--rs);
+  cursor:pointer;background:var(--bg2);
+  transition:all .15s;
+}
+.ci:active{opacity:.8;}
+.ci.on{background:var(--goldl);border-color:var(--goldb);}
+.ci-box{
+  width:15px;height:15px;min-width:15px;
+  border:1px solid var(--bd2);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;margin-top:2px;flex-shrink:0;color:var(--tx3);
+}
+.ci.on .ci-box{background:var(--gold);border-color:var(--gold);color:#0f1117;}
+.ci-txt{font-size:12px;color:var(--tx2);line-height:1.5;}
+.ci.on .ci-txt{color:var(--gold2);font-weight:600;}
+.ci-sub{font-size:10px;color:var(--tx3);display:block;margin-top:2px;line-height:1.4;}
 
 /* ── PHOTO ── */
 .photo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
-.ps{border:1.5px dashed var(--bd2);border-radius:var(--rs);min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;background:var(--s2);}
-.ps.has{border-style:solid;border-color:var(--ac);padding:0;}
-.ps img{width:100%;height:140px;object-fit:cover;display:block;}
-.ps-lbl{font-size:11px;font-weight:700;color:var(--tx2);margin-top:6px;}
+.ps{
+  border:1px dashed var(--bd2);border-radius:var(--rs);
+  min-height:110px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  cursor:pointer;position:relative;overflow:hidden;
+  background:var(--bg2);transition:border-color .15s;
+}
+.ps:hover{border-color:var(--gold);}
+.ps.has{border-style:solid;border-color:var(--bd2);padding:0;}
+.ps img{width:100%;height:130px;object-fit:cover;display:block;}
+.ps-lbl{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--tx3);margin-top:7px;text-transform:uppercase;}
 .ps-sub{font-size:10px;color:var(--tx3);}
-.ps-add{font-size:11px;color:var(--ac);font-weight:600;margin-top:4px;}
-.ps-icon{font-size:26px;opacity:.35;}
-.ps-rm{position:absolute;top:5px;right:5px;width:24px;height:24px;background:rgba(0,0,0,.55);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;cursor:pointer;border:none;}
-.ps-cap{width:100%;padding:5px 8px;border:none;border-top:1px solid var(--bd);font-size:11px;background:rgba(255,255,255,.9);color:var(--tx);}
+.ps-add{font-size:11px;color:var(--gold);font-weight:600;margin-top:4px;}
+.ps-icon{font-size:22px;opacity:.2;}
+.ps-rm{
+  position:absolute;top:6px;right:6px;
+  width:22px;height:22px;
+  background:rgba(0,0,0,.65);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--tx2);font-size:11px;cursor:pointer;border:none;
+}
+.ps-cap{
+  width:100%;padding:5px 8px;border:none;
+  border-top:1px solid var(--bd);
+  font-size:11px;background:rgba(28,31,43,.9);color:var(--tx);
+}
 
 /* ── CAMERA ── */
 .cam-modal{position:fixed;inset:0;background:#000;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;}
 .cam-modal video{width:100%;max-height:65vh;object-fit:cover;}
 .cam-ctrl{display:flex;gap:16px;align-items:center;justify-content:center;padding:24px 16px;}
-.cam-shutter{width:68px;height:68px;background:#fff;border-radius:50%;border:4px solid #ccc;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.cam-cancel{padding:11px 22px;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:20px;font-size:13px;cursor:pointer;}
-.cam-label{color:#fff;font-size:13px;font-weight:600;padding:10px 16px 0;text-align:center;}
-.cam-switch{position:absolute;top:16px;right:16px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.3);color:#fff;padding:7px 14px;border-radius:20px;font-size:12px;cursor:pointer;}
+.cam-shutter{
+  width:66px;height:66px;
+  background:var(--gold);border-radius:50%;
+  border:3px solid var(--gold2);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:0;
+}
+.cam-shutter::after{content:'';width:24px;height:24px;border-radius:50%;background:#0f1117;}
+.cam-cancel{
+  padding:10px 22px;
+  background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);
+  border:1px solid rgba(255,255,255,.2);border-radius:4px;
+  font-size:12px;font-weight:600;letter-spacing:.5px;cursor:pointer;
+}
+.cam-label{color:rgba(255,255,255,.7);font-size:12px;font-weight:600;letter-spacing:.5px;padding:10px 16px 0;text-align:center;text-transform:uppercase;}
+.cam-switch{
+  position:absolute;top:16px;right:16px;
+  background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2);
+  color:rgba(255,255,255,.7);padding:6px 13px;border-radius:4px;
+  font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.5px;
+}
 canvas#snapCanvas{display:none;}
 
-/* ── HISTORY ── */
-.hl{display:flex;flex-direction:column;gap:6px;}
-.hi{background:var(--s);border:1px solid var(--bd);border-radius:var(--rs);padding:11px 13px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:8px;}
-.hi:hover{border-color:var(--ac);}
-.hi-acc{font-size:13px;font-weight:700;}
-.hi-meta{font-size:11px;color:var(--tx3);margin-top:2px;}
-.hi-badges{display:flex;gap:3px;flex-direction:column;align-items:flex-end;flex-shrink:0;}
-.badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;}
-.b-p{background:var(--grl);color:var(--gr);}
-.b-f{background:var(--rdl);color:var(--rd);}
-.b-n{background:var(--s3);color:var(--tx3);}
-.empty{text-align:center;padding:36px;color:var(--tx3);font-size:13px;}
-
 /* ── FOOTER ── */
-.footer{position:fixed;bottom:0;left:0;right:0;background:var(--s);border-top:1px solid var(--bd);padding:10px 14px;display:flex;gap:7px;z-index:100;}
+.footer{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--s);border-top:1px solid var(--bd);
+  padding:10px 14px;display:flex;gap:7px;z-index:100;
+}
 
 /* ── TOAST ── */
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) scale(.9);background:#111827;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center;}
+.toast{
+  position:fixed;bottom:80px;left:50%;
+  transform:translateX(-50%) scale(.92);
+  background:var(--s2);color:var(--tx);
+  border:1px solid var(--bd2);
+  padding:10px 20px;border-radius:4px;
+  font-size:12px;font-weight:600;letter-spacing:.3px;
+  z-index:999;opacity:0;transition:all .22s;
+  pointer-events:none;white-space:nowrap;
+  max-width:90vw;text-align:center;
+}
 .toast.show{opacity:1;transform:translateX(-50%) scale(1);}
 
 /* ── MISC ── */
 .divider{height:1px;background:var(--bd);margin:10px 0;}
-.snote{font-size:11px;color:var(--tx2);background:var(--s3);border-left:3px solid var(--ac);padding:8px 10px;border-radius:0 4px 4px 0;margin-bottom:10px;line-height:1.5;}
-.dir-badge{font-size:10px;padding:2px 8px;border-radius:20px;background:var(--orl);color:var(--or);font-weight:700;}
-.ds-title{font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:6px;display:flex;align-items:center;gap:5px;text-transform:uppercase;}
+.snote{
+  font-size:11px;color:var(--tx3);
+  background:var(--bg2);border-left:2px solid var(--gold);
+  padding:8px 11px;border-radius:0 4px 4px 0;
+  margin-bottom:10px;line-height:1.5;
+}
+.dir-badge{
+  font-size:9px;padding:2px 8px;border-radius:3px;
+  background:rgba(201,168,76,.15);color:var(--gold);
+  font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  border:1px solid var(--goldb);
+}
+.ds-title{
+  font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--tx3);margin-bottom:7px;
+  display:flex;align-items:center;gap:6px;
+}
 .hidden{display:none!important;pointer-events:none!important;visibility:hidden!important;}
 
 /* ── LOADING ── */
-.loading{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
-.loading-spin{width:40px;height:40px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
-.loading-txt{color:#fff;font-size:14px;font-weight:600;}
+.loading{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+.loading-spin{
+  width:38px;height:38px;
+  border:2px solid rgba(201,168,76,.2);
+  border-top-color:var(--gold);
+  border-radius:50%;animation:spin .8s linear infinite;
+}
+.loading-txt{color:var(--gold);font-size:13px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* ════════════════════════════════════════
-   반응형 브레이크포인트
-   모바일  : ~479px
-   태블릿  : 480px~767px
-   PC      : 768px+
-════════════════════════════════════════ */
-
-/* 모바일 전용 */
+/* ── 반응형 ── */
 @media(max-width:479px){
   :root{--pad:8px;--fs-base:14px;}
   .hdr{height:48px;}
-  .hdr-title{font-size:14px;}
-  .lang-btn{padding:3px 6px;font-size:10px;}
-  /* 2컬럼 그리드 → 1컬럼 (날짜 기간 제외) */
+  .hdr-title{font-size:11px;}
+  .lang-btn{padding:3px 7px;font-size:10px;}
   .g2.mobile-full{grid-template-columns:1fr;}
-  /* 측정 테이블 폰트 축소 */
-  .mt th{font-size:9px;padding:5px 2px;}
+  .mt th{font-size:8px;padding:5px 2px;}
   .mt input[type=number]{font-size:12px;padding:5px 2px;}
   .rate-cell{font-size:11px;}
-  .se-t{padding:4px 5px;font-size:10px;}
-  /* 체크리스트 */
+  .se-t{padding:4px 5px;font-size:9px;}
   .ci-txt{font-size:12px;}
   .ci-sub{font-size:10px;}
-  /* 판정 버튼 */
-  .vbtn{font-size:13px;padding:10px 6px;}
-  /* 사진 그리드 */
+  .vbtn{font-size:12px;padding:10px 6px;}
   .photo-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-  .ps img{height:110px;}
-  /* 푸터 */
+  .ps img{height:100px;}
   .footer{padding:8px 10px;gap:5px;}
   .footer .btn{font-size:12px;padding:9px 8px;}
-  /* 요약바 */
   .si-val{font-size:13px;}
 }
-
-/* 태블릿 */
 @media(min-width:480px) and (max-width:767px){
   :root{--pad:12px;--content-max:600px;}
-  .mt th{font-size:10px;}
-  .mt input[type=number]{font-size:13px;}
   .photo-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-  .ps img{height:150px;}
+  .ps img{height:140px;}
 }
-
-/* PC */
 @media(min-width:768px){
   :root{--pad:16px;--content-max:780px;}
   .main{padding:16px var(--pad);}
   .card-bd{padding:16px 18px;}
   .ci-txt{font-size:13px;}
   .ci-sub{font-size:11px;}
-  .mt th{font-size:11px;padding:7px 4px;}
+  .mt th{font-size:10px;padding:7px 5px;}
   .mt input[type=number]{font-size:13px;padding:7px 4px;}
-  .rate-cell{font-size:13px;}
-  .se-t{font-size:12px;padding:5px 8px;}
+  .rate-cell{font-size:12px;}
+  .se-t{font-size:11px;padding:6px 9px;}
   .photo-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
-  .ps img{height:160px;}
-  .ps-lbl{font-size:12px;}
+  .ps img{height:150px;}
+  .ps-lbl{font-size:11px;}
   .footer{padding:12px 18px;}
   .footer .btn{font-size:13px;padding:11px 16px;}
-  .vbtn{font-size:15px;}
-  .si-val{font-size:17px;}
-  /* PC에서 체크리스트 2열 */
+  .vbtn{font-size:14px;}
+  .si-val{font-size:16px;}
   .cl-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
 }
 </style>
@@ -264,20 +469,19 @@ canvas#snapCanvas{display:none;}
 <body>
 
 <div class="hdr">
-  <div class="hdr-title">🔥 <span id="hTitle">연소성 분석표</span></div>
+  <div class="hdr-title"><span id="hTitle">Flammability Test</span></div>
   <div class="hdr-right">
     <div class="lang-seg">
-      <button class="lang-btn on" onclick="setLang('ko')">국문</button>
-      <button class="lang-btn" onclick="setLang('en')">영문</button>
-      <button class="lang-btn" onclick="setLang('koen')">국영문</button>
+      <button class="lang-btn on" onclick="setLang('ko')">KO</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('koen')">BI</button>
     </div>
   </div>
 </div>
 
 <div class="nav">
-  <div class="nav-tab on" onclick="showView('quick')" id="nQuick">⚡ <span id="n0">빠른 입력</span></div>
-  <div class="nav-tab" onclick="showView('form')" id="nForm">✏️ <span id="n1">상세 입력</span></div>
-  <div class="nav-tab" onclick="showView('history')" id="nHist">📋 <span id="n2">기록</span></div>
+  <div class="nav-tab on" onclick="showView('quick')" id="nQuick"><span id="n0">Quick</span></div>
+  <div class="nav-tab" onclick="showView('form')" id="nForm"><span id="n1">Detail</span></div>
 </div>
 
 <!-- ═══ QUICK MODE VIEW ══════════════════════════════════════════════════════ -->
@@ -285,15 +489,15 @@ canvas#snapCanvas{display:none;}
 <div class="main">
 
   <!-- 빠른 입력 안내 -->
-  <div style="background:linear-gradient(135deg,#1a56db,#0f3fa8);border-radius:var(--r);padding:16px;margin-bottom:10px;color:#fff;">
-    <div style="font-size:16px;font-weight:700;margin-bottom:4px;">⚡ 빠른 입력 모드</div>
-    <div style="font-size:12px;opacity:.85;">기록지 촬영 → 자동 입력 → 분석표 전송까지 한 번에!</div>
+  <div style="background:var(--s2);border:1px solid var(--bd);border-left:3px solid var(--gold);border-radius:var(--r);padding:16px 18px;margin-bottom:10px;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">Quick Input Mode</div>
+    <div style="font-size:12px;color:var(--tx3);letter-spacing:.2px;">기록지 촬영 → AI 자동 인식 → 분석표 생성</div>
   </div>
 
   <!-- STEP 1: 접수번호 -->
   <div class="card">
     <div class="card-bd">
-      <div style="font-size:11px;font-weight:700;color:var(--tx3);margin-bottom:6px;text-transform:uppercase;">STEP 1 — 접수번호</div>
+      <div style="font-size:11px;font-weight:700;color:var(--tx3);margin-bottom:6px;text-transform:uppercase;">STEP 01 — 접수번호</div>
       <div class="f">
         <input type="text" id="qAccNo" placeholder="M127 또는 W220-26-00001"
           style="font-size:16px;padding:11px 12px;font-weight:600;"
@@ -306,20 +510,20 @@ canvas#snapCanvas{display:none;}
   <!-- STEP 2: 기록지 촬영 -->
   <div class="card">
     <div class="card-bd">
-      <div style="font-size:11px;font-weight:700;color:var(--tx3);margin-bottom:8px;text-transform:uppercase;">STEP 2 — 기록지 촬영 → 자동 입력</div>
+      <div style="font-size:11px;font-weight:700;color:var(--tx3);margin-bottom:8px;text-transform:uppercase;">STEP 02 — 기록지 촬영 / AI 자동 인식</div>
       <button onclick="openOcrCam()" style="
         width:100%;padding:16px;background:var(--ac);color:#fff;border:none;
         border-radius:var(--rs);font-size:15px;font-weight:700;cursor:pointer;
         display:flex;align-items:center;justify-content:center;gap:8px;
-      ">📷 수기 기록지 촬영</button>
+      ">기록지 촬영 — AI 자동 인식</button>
       <div style="font-size:11px;color:var(--tx3);text-align:center;margin-top:6px;">
-        AI가 자동으로 데이터를 읽어서 입력해줘요
+        수기 기록지를 촬영하면 AI가 데이터를 자동 인식합니다.
       </div>
 
       <!-- 인식된 데이터 미리보기 -->
       <div id="qDataPreview" style="display:none;margin-top:12px;">
         <div style="padding:8px 10px;background:var(--grl);border-radius:var(--rs);border:1px solid var(--gr);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
-          <div style="font-size:12px;font-weight:700;color:var(--gr);">✅ 데이터 인식 완료</div>
+          <div style="font-size:12px;font-weight:700;color:var(--gr);">데이터 인식 완료</div>
           <button onclick="showView('form')" style="padding:4px 9px;background:transparent;border:1px solid var(--gr);border-radius:var(--rs);font-size:11px;color:var(--gr);cursor:pointer;">상세 수정 →</button>
         </div>
         <div id="qTableArea"></div>
@@ -386,7 +590,7 @@ canvas#snapCanvas{display:none;}
   <!-- STEP 3: 사진 촬영 -->
   <div class="card">
     <div class="card-bd">
-      <div style="font-size:11px;font-weight:700;color:var(--tx3);margin-bottom:8px;text-transform:uppercase;">STEP 3 — 시험 사진</div>
+      <div style="font-size:11px;font-weight:700;color:var(--tx3);margin-bottom:8px;text-transform:uppercase;">STEP 03 — 시험 사진</div>
       <div class="photo-grid" id="qPhotoGrid"></div>
     </div>
   </div>
@@ -394,7 +598,7 @@ canvas#snapCanvas{display:none;}
   <!-- STEP 4: 판정 -->
   <div class="card">
     <div class="card-bd">
-      <div style="font-size:11px;font-weight:700;color:var(--tx3);margin-bottom:8px;text-transform:uppercase;">STEP 4 — 판정</div>
+      <div style="font-size:11px;font-weight:700;color:var(--tx3);margin-bottom:8px;text-transform:uppercase;">STEP 04 — 판정</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
         <div>
           <div style="font-size:11px;color:var(--tx2);margin-bottom:4px;font-weight:600;">상태 (State)</div>
@@ -421,15 +625,21 @@ canvas#snapCanvas{display:none;}
 </div>
 
 <!-- 빠른 입력 전용 sticky footer — quickView 안에 위치 -->
-<div id="quickFooter" style="position:fixed;bottom:0;left:0;right:0;background:var(--s);border-top:1px solid var(--bd);padding:10px 14px;display:flex;gap:7px;z-index:100;max-width:100%;">
+<div id="quickFooter" style="position:fixed;bottom:0;left:0;right:0;background:var(--s);border-top:1px solid var(--bd);padding:10px 14px;display:flex;gap:7px;z-index:100;">
   <button onclick="quickShareKakao()" style="
-    flex:1;padding:13px;background:#FEE500;color:#3A1D1D;border:none;
-    border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;
-  ">📤 공유하기</button>
+    flex:1;padding:13px;
+    background:var(--goldl);color:var(--gold2);
+    border:1px solid var(--goldb);
+    border-radius:var(--rs);font-size:11px;font-weight:700;
+    letter-spacing:1px;text-transform:uppercase;cursor:pointer;
+  ">공유</button>
   <button onclick="quickExport()" style="
-    flex:1;padding:13px;background:var(--gr);color:#fff;border:none;
-    border-radius:var(--rs);font-size:15px;font-weight:700;cursor:pointer;
-  ">⬇ 분석표 생성</button>
+    flex:2;padding:13px;
+    background:linear-gradient(135deg,#1a6e47,#145c3b);color:#e8f7ef;
+    border:1px solid #1a6e47;
+    border-radius:var(--rs);font-size:11px;font-weight:700;
+    letter-spacing:1px;text-transform:uppercase;cursor:pointer;
+  ">분석표 생성</button>
 </div>
 
 <!-- ═══ FORM VIEW ═══════════════════════════════════════════════════════════ -->
@@ -541,14 +751,14 @@ canvas#snapCanvas{display:none;}
         color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:700;
         cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
       ">
-        📷 기록지 촬영 → 자동 입력
+        기록지 촬영 — AI 자동 인식
       </button>
       <div style="font-size:11px;color:var(--tx3);text-align:center;margin-top:5px;">
-        수기 기록지를 촬영하면 AI가 자동으로 데이터를 읽어서 입력해줘요
+        수기 기록지를 촬영하면 수기 기록지를 촬영하면 AI가 데이터를 자동 인식합니다.
       </div>
     </div>
 
-    <div class="snote" id="snote1">또는 직접 입력하세요</div>
+    <div class="snote" id="snote1">또는 아래에서 직접 입력</div>
     <div class="type-grid">
       <div class="tc on" id="tcState" onclick="togType('state')">
         <div class="tc-chk">✓</div>
@@ -649,7 +859,7 @@ canvas#snapCanvas{display:none;}
     <span class="chev">▾</span>
   </div>
   <div class="card-bd">
-    <div class="snote" id="snote_photo">📸 탭하면 카메라 촬영 또는 갤러리에서 선택. 엑셀 Sheet2에 자동 삽입됩니다.</div>
+    <div class="snote" id="snote_photo">탭하여 사진 촬영 또는 갤러리 선택. Sheet2에 자동 삽입됩니다.</div>
     <div class="photo-grid" id="photoGrid"></div>
   </div>
 </div>
@@ -657,26 +867,10 @@ canvas#snapCanvas{display:none;}
 </div><!-- end main -->
 
 <div class="footer">
-  <button class="btn btn-pr" style="flex:1;" onclick="save()" id="saveBtn">💾 <span id="l_save">저장</span></button>
-  <button class="btn btn-gr" style="flex:1;" onclick="exportExcel()" id="exportBtn">⬇ <span id="l_export">엑셀 내보내기</span></button>
-  <button class="btn" onclick="resetForm()" id="resetBtn"><span id="l_reset">초기화</span></button>
+  <button class="btn btn-gr" style="flex:2;letter-spacing:.8px;text-transform:uppercase;" onclick="exportExcel()" id="exportBtn"><span id="l_export">엑셀 내보내기</span></button>
+  <button class="btn" style="flex:1;letter-spacing:.5px;" onclick="resetForm()" id="resetBtn"><span id="l_reset">초기화</span></button>
 </div>
 </div><!-- formView -->
-
-<!-- ═══ HISTORY VIEW ═══════════════════════════════════════════════════════ -->
-<div id="historyView" class="hidden">
-<div class="main">
-  <div class="card">
-    <div class="card-bd">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <span style="font-size:14px;font-weight:700;" id="l_hist">과거 기록</span>
-        <button class="btn btn-sm" onclick="showView('form')">← <span id="l_back">돌아가기</span></button>
-      </div>
-      <div id="histList"></div>
-    </div>
-  </div>
-</div>
-</div>
 
 <!-- ═══ CAMERA MODAL ════════════════════════════════════════════════════════ -->
 <div class="cam-modal hidden" id="camModal">
@@ -694,14 +888,14 @@ canvas#snapCanvas{display:none;}
 
 <!-- ═══ OCR 카메라 모달 ══════════════════════════════════════════════════════ -->
 <div class="cam-modal hidden" id="ocrModal">
-  <div class="cam-label" style="font-size:15px;font-weight:700;">📋 수기 기록지 촬영</div>
+  <div class="cam-label" style="font-size:15px;font-weight:700;">수기 기록지 촬영</div>
   <div style="color:rgba(255,255,255,.7);font-size:12px;padding:4px 16px 8px;text-align:center;">기록지 전체가 화면에 들어오도록 촬영해주세요</div>
   <video id="ocrVideo" autoplay playsinline style="width:100%;max-height:62vh;object-fit:cover;"></video>
   <canvas id="ocrCanvas" style="display:none;"></canvas>
   <button class="cam-switch" onclick="switchOcrCam()">🔄 전환</button>
   <div class="cam-ctrl">
     <button class="cam-cancel" onclick="closeOcrCam()">취소</button>
-    <button class="cam-shutter" onclick="snapOcr()" style="background:#1a56db;border-color:#0f3fa8;font-size:22px;">📋</button>
+    <button class="cam-shutter" onclick="snapOcr()" style="background:#1a56db;border-color:#0f3fa8;font-size:22px;">SCAN</button>
     <button class="cam-cancel" onclick="pickOcrFile()">갤러리</button>
   </div>
   <input type="file" id="ocrFileInput" accept="image/*" style="display:none" onchange="onOcrFile(event)">
@@ -711,7 +905,7 @@ canvas#snapCanvas{display:none;}
 <div id="ocrResultModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:800;align-items:flex-end;justify-content:center;">
   <div style="background:var(--s);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:680px;max-height:85vh;overflow-y:auto;padding:20px 16px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <div style="font-size:15px;font-weight:700;">📋 인식 결과 확인</div>
+      <div style="font-size:15px;font-weight:700;">인식 결과 확인</div>
       <button onclick="closeOcrResult()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--tx3);">✕</button>
     </div>
     <div id="ocrResultBody"></div>
@@ -758,9 +952,6 @@ let photos = [
   {id:'before_heat',  labelKo:'시험 전 (고온)', labelEn:'Before - Heat',  data:null, caption:''},
   {id:'after_heat',   labelKo:'시험 후 (고온)', labelEn:'After - Heat',   data:null, caption:''},
 ];
-let records = [];
-try { records = JSON.parse(localStorage.getItem('flamV4')||'[]'); } catch(e){}
-
 // Camera state
 let camStream = null;
 let camFacing = 'environment';
@@ -801,7 +992,7 @@ function renderQPhotos(){
       slot.innerHTML = `<img src="${p.data}">
         <button class="ps-rm" onclick="event.stopPropagation();rmPhoto(${i});renderQPhotos()">✕</button>`;
     } else {
-      slot.innerHTML = `<div class="ps-icon">📷</div>
+      slot.innerHTML = `<div class="ps-icon">&#9654;</div>
         <div class="ps-lbl">${label}</div>
         <div class="ps-add">탭하여 추가</div>`;
       slot.onclick = ()=>openCam(i, true);
@@ -1199,7 +1390,7 @@ async function quickExport(){
   try{
     const rawAccNo = document.getElementById('qAccNo')?.value||'';
     const formatted = formatAccNo(rawAccNo);
-    if(!formatted){ toast('❗ 접수번호를 입력해주세요.'); return; }
+    if(!formatted){ toast('접수번호를 입력해주세요.'); return; }
 
     const overlay = document.getElementById('loadingOverlay');
     const ltxt    = document.getElementById('loadingTxt');
@@ -1302,7 +1493,7 @@ async function quickExport(){
     }
   } catch(err){
     document.getElementById('loadingOverlay').classList.add('hidden');
-    toast('❗ 오류: ' + err.message);
+    toast('오류: ' + err.message);
     console.error('quickExport error:', err);
   }
 }
@@ -1311,10 +1502,8 @@ async function quickExport(){
 function showView(v){
   document.getElementById('quickView').classList.toggle('hidden', v!=='quick');
   document.getElementById('formView').classList.toggle('hidden', v!=='form');
-  document.getElementById('historyView').classList.toggle('hidden', v!=='history');
   document.getElementById('nQuick').classList.toggle('on', v==='quick');
   document.getElementById('nForm').classList.toggle('on', v==='form');
-  document.getElementById('nHist').classList.toggle('on', v==='history');
 
   // footer 전환 — position:fixed이므로 display로만 제어
   const qf = document.getElementById('quickFooter');
@@ -1322,7 +1511,6 @@ function showView(v){
   if(qf) qf.style.display = v==='quick' ? 'flex' : 'none';
   if(ff) ff.style.display = v==='form'  ? 'flex' : 'none';
 
-  if(v==='history') renderHistory();
   if(v==='quick') renderQPhotos();
 }
 
@@ -1344,9 +1532,9 @@ const L = {
     sPass:'합격 (Pass)', sFail:'불합격 (Fail)', hPass:'합격 (Pass)', hFail:'불합격 (Fail)',
     cs1:'기준 및 방법', cs2:'시험 특이사항', cs3:'시험편 추가정보',
     l_stThick:'상태 시험편 두께', l_htThick:'고온방치 시험편 두께', l_memo:'기타 메모',
-    snote_photo:'📸 탭하면 카메라 촬영 또는 갤러리에서 선택. 엑셀 Sheet2에 자동 삽입됩니다.',
+    snote_photo:'탭하여 사진 촬영 또는 갤러리 선택. Sheet2에 자동 삽입됩니다.',
     l_save:'저장', l_export:'엑셀 내보내기', l_reset:'초기화',
-    l_hist:'과거 기록', l_back:'돌아가기', dp0:'방향없음',
+    dp0:'방향없음',
   },
   en:{
     hTitle:'Flammability Analysis', n1:'Input', n2:'History',
@@ -1366,7 +1554,7 @@ const L = {
     l_stThick:'State spec. thickness', l_htThick:'Heat aging spec. thickness', l_memo:'Other notes',
     snote_photo:'📸 Tap to take photo or choose from gallery. Auto-inserted into Excel Sheet2.',
     l_save:'Save', l_export:'Export Excel', l_reset:'Reset',
-    l_hist:'History', l_back:'Back', dp0:'Non-dir.',
+    dp0:'Non-dir.',
   }
 };
 // koen shares same labels as ko (bilingual content shown via ci-sub spans)
@@ -1552,7 +1740,7 @@ function renderPhotos(){
         <input class="ps-cap" placeholder="${lang==='en'?'Caption...':'캡션...'}" value="${p.caption}"
           oninput="photos[${i}].caption=this.value" onclick="event.stopPropagation()">`;
     } else {
-      slot.innerHTML = `<div class="ps-icon">📷</div>
+      slot.innerHTML = `<div class="ps-icon">&#9654;</div>
         <div class="ps-lbl">${label}</div>
         <div class="ps-add">${lang==='en'?'Tap to add':'탭하여 추가'}</div>`;
       slot.onclick = ()=>openCam(i);
@@ -1604,7 +1792,7 @@ function snap(){
   closeCam();
   renderPhotos();
   renderQPhotos();
-  toast(lang==='en'?'Photo captured!':'사진 촬영 완료!');
+  toast(lang==='en'?'Photo captured.':'촬영 완료.');
 }
 
 function closeCam(){
@@ -1620,7 +1808,7 @@ function onFile(e){
     photos[currentPhotoIdx].data=ev.target.result;
     renderPhotos();
     renderQPhotos();
-    toast(lang==='en'?'Photo added!':'사진 추가 완료!');
+    toast(lang==='en'?'Photo added.':'사진 추가 완료.');
   };
   reader.readAsDataURL(file);
   e.target.value='';
@@ -1645,61 +1833,11 @@ function collect(){
   };
 }
 
-function save(){
-  const rec={id:Date.now(), ...collect()};
-  records.unshift(rec);
-  try{ localStorage.setItem('flamV4',JSON.stringify(records.slice(0,40))); }catch(e){}
-  toast(lang==='en'?'Saved ✓':'저장 완료 ✓');
-}
 
-function renderHistory(){
-  const list=document.getElementById('histList');
-  if(!records.length){ list.innerHTML=`<div class="empty">${lang==='en'?'No records found.':'저장된 기록이 없습니다.'}</div>`; return; }
-  list.innerHTML='';
-  const hl=document.createElement('div'); hl.className='hl';
-  records.forEach(r=>{
-    const item=document.createElement('div'); item.className='hi';
-    const bv=(v,lbl)=>`<span class="badge ${!v?'b-n':v==='pass'?'b-p':'b-f'}">${lbl}: ${!v?'-':v==='pass'?(lang==='en'?'Pass':'합격'):(lang==='en'?'Fail':'불합격')}</span>`;
-    item.innerHTML=`
-      <div><div class="hi-acc">${r.accNo||'-'} ${r.prodName?'· '+r.prodName:''}</div>
-      <div class="hi-meta">${r.testDate||''} ${r.tester?'· '+r.tester:''}</div></div>
-      <div class="hi-badges">${bv(r.verdicts?.state,lang==='en'?'State':'상태')}${bv(r.verdicts?.heat,lang==='en'?'Heat':'고온')}</div>`;
-    item.onclick=()=>loadRec(r);
-    hl.appendChild(item);
-  });
-  list.appendChild(hl);
-}
 
-function loadRec(r){
-  ['accNo','prodName','tester','testDate','method',
-   'statePeriodFrom','statePeriodTo','heatPeriodFrom','heatPeriodTo',
-   'roomTemp','roomHumid','labDate','equipment','memo','stateThickNote','heatThickNote']
-   .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=r[id]||''; });
-  lang=r.lang||'ko'; setLang(lang);
-  dir=r.dir||'none';
-  document.querySelectorAll('.dp').forEach((p,i)=>p.classList.toggle('on',['none','MD','TD','both'][i]===dir));
-  activeTypes={...r.activeTypes};
-  ['state','heat'].forEach(t=>{
-    document.getElementById('tc'+(t==='state'?'State':'Heat')).classList.toggle('on',activeTypes[t]);
-    document.getElementById(t+'Section').style.display=activeTypes[t]?'':'none';
-  });
-  mdata=JSON.parse(JSON.stringify(r.mdata));
-  verdicts={...r.verdicts};
-  ['state','heat'].forEach(m=>{
-    const pfx=m==='state'?'s':'h';
-    document.getElementById(pfx+'Pass').classList.toggle('on',verdicts[m]==='pass');
-    document.getElementById(pfx+'Fail').classList.toggle('on',verdicts[m]==='fail');
-  });
-  if(r.photos) photos=r.photos.map(p=>({...p}));
-  if(r.checks) document.querySelectorAll('[data-key]').forEach(el=>{
-    const on=r.checks[el.dataset.key];
-    el.classList.toggle('on',!!on);
-    el.querySelector('.ci-box').textContent=on?'✓':'';
-  });
-  renderTables(); renderPhotos();
-  showView('form');
-  toast(lang==='en'?'Loaded ✓':'불러오기 완료 ✓');
-}
+
+
+
 
 function resetForm(){
   if(!confirm(lang==='en'?'Reset all data?':'모든 데이터를 초기화할까요?')) return;
@@ -1741,7 +1879,7 @@ function showApiKeyModal(callback){
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;';
   modal.innerHTML = `
     <div style="background:var(--s);border-radius:var(--r);padding:22px;width:100%;max-width:360px;">
-      <div style="font-size:15px;font-weight:700;margin-bottom:6px;">🔑 Claude API 키 설정</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px;">API 키 설정</div>
       <div style="font-size:12px;color:var(--tx3);margin-bottom:14px;">
         platform.anthropic.com → API keys에서 발급받은 키를 입력하세요.<br>
         키는 이 기기에만 저장되며 외부로 전송되지 않아요.
@@ -1783,7 +1921,7 @@ async function exportExcel(){
   const ltxt    = document.getElementById('loadingTxt');
 
   // ── 유효성 검사 ────────────────────────────────────────────────────────────
-  if(!g('accNo'))  { toast('❗ 접수번호를 입력해주세요.'); return; }
+  if(!g('accNo'))  { toast('접수번호를 입력해주세요.'); return; }
 
   ltxt.textContent = '분석표 생성 중... (10~20초 소요)';
   overlay.classList.remove('hidden');
@@ -1901,7 +2039,7 @@ async function exportExcel(){
   } catch(err){
     overlay.classList.add('hidden');
     console.error(err);
-    toast('❗ 오류: ' + err.message);
+    toast('오류: ' + err.message);
   }
 }
 
@@ -1976,17 +2114,17 @@ function showDownloadModal(url, accNo){
       <a href="${url}" target="_blank" style="
         display:block;text-align:center;padding:12px;background:var(--gr);color:#fff;
         border-radius:var(--rs);font-size:14px;font-weight:700;text-decoration:none;margin-bottom:10px;
-      ">⬇ 엑셀 다운로드</a>
+      ">엑셀 다운로드</a>
 
       <button onclick="shareExcelKakao('${url}','${accNo}')" style="
         width:100%;padding:12px;background:#FEE500;color:#3A1D1D;border:none;
         border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px;
-      ">💬 카카오톡으로 공유</button>
+      ">카카오톡 공유</button>
 
       <button onclick="copyLink('${url}')" style="
         width:100%;padding:10px;background:var(--s2);border:1px solid var(--bd);
         border-radius:var(--rs);font-size:13px;cursor:pointer;margin-bottom:14px;color:var(--tx2);font-weight:600;
-      ">🔗 링크 복사</button>
+      ">링크 복사</button>
 
       <button onclick="document.getElementById('dlModal').remove()" style="
         width:100%;padding:9px;background:transparent;border:none;
@@ -2119,7 +2257,7 @@ async function quickShareKakao(){
           text:  `시험일: ${today()}`,
           files: [new File([blob], fname, {type: blob.type})]
         });
-        toast('✅ 공유 완료!');
+        toast('공유 완료.');
       } catch(shareErr){
         if(shareErr.name !== 'AbortError'){
           // 공유 취소가 아닌 오류면 다운로드로 fallback
@@ -2129,12 +2267,12 @@ async function quickShareKakao(){
     } else {
       // Web Share 미지원 기기 — 다운로드
       _downloadBlob(blob, fname);
-      toast('📊 엑셀 저장 완료! 카카오톡에서 파일로 전송하세요.');
+      toast('저장 완료. 카카오톡에서 파일을 전송하세요.');
     }
 
   } catch(err){
     overlay.classList.add('hidden');
-    toast('❗ 오류: ' + err.message);
+    toast('오류: ' + err.message);
     console.error(err);
   }
 }
@@ -2220,25 +2358,25 @@ function downloadKakaoPhotos(){
     document.body.removeChild(a);
     downloaded++;
   });
-  if(downloaded>0) toast(`📷 ${downloaded}장 저장 완료! 카카오톡에서 첨부하세요.`);
+  if(downloaded>0) toast(`사진 ${downloaded}장 저장 완료.`);
 }
 
 function shareExcelKakao(url, accNo){
   const text = `[연소성 분석표]\n접수번호: ${accNo||'-'}\n\n아래 링크에서 엑셀 파일을 다운로드하세요:\n${url}`;
   navigator.clipboard.writeText(text).then(()=>{
-    toast('📋 카카오톡에 붙여넣기 할 텍스트가 복사됐어요!');
+    toast('링크가 복사되었습니다.');
   }).catch(()=>{
     const ta = document.createElement('textarea');
     ta.value = text; ta.style.cssText='position:fixed;top:-9999px;';
     document.body.appendChild(ta); ta.select();
-    try{ document.execCommand('copy'); toast('📋 복사 완료!'); } catch(e){}
+    try{ document.execCommand('copy'); toast('복사 완료.'); } catch(e){}
     document.body.removeChild(ta);
   });
 }
 
 function copyLink(url){
   navigator.clipboard.writeText(url).then(()=>{
-    toast('🔗 링크가 복사됐어요!');
+    toast('링크가 복사되었습니다.');
   }).catch(()=>{ toast('링크: '+url); });
 }
 
@@ -2587,7 +2725,7 @@ async function runOcr(dataUrl){
       // API 키 오류면 다시 입력 요청
       if(json.error.type === 'authentication_error'){
         saveApiKey('');
-        toast('❗ API 키가 올바르지 않아요. 다시 입력해주세요.');
+        toast('API 키가 올바르지 않습니다. 다시 입력해주세요.');
         showApiKeyModal(()=>runOcr(dataUrl));
         return;
       }
@@ -2603,7 +2741,7 @@ async function runOcr(dataUrl){
 
   } catch(err){
     overlay.classList.add('hidden');
-    toast('❗ 인식 실패: ' + err.message);
+    toast('인식 실패: ' + err.message);
     console.error(err);
   }
 }
@@ -2730,7 +2868,7 @@ function applyOcrResult(){
   closeOcrResult();
   renderQPhotos();
   autoQVerdict();
-  toast('✅ 데이터 자동 입력 완료!');
+  toast('데이터 인식이 완료되었습니다.');
 }
 
 function closeOcrResult(){

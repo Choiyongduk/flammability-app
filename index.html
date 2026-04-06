@@ -2159,31 +2159,58 @@ async function quickShareKakao(){
     // ── Sheet1: 심플 데이터표 ───────────────────────────────────────────────
     const ws1 = wb.addWorksheet('연소성');
     ws1.columns = [
-      {width:6},{width:14},{width:14},{width:16},{width:14},{width:8}
+      {width:7},{width:14},{width:14},{width:16},{width:14},{width:8}
     ];
 
+    // 공통 셀 스타일 헬퍼
+    const borderAll = {
+      top:    {style:'thin', color:{argb:'FF000000'}},
+      left:   {style:'thin', color:{argb:'FF000000'}},
+      bottom: {style:'thin', color:{argb:'FF000000'}},
+      right:  {style:'thin', color:{argb:'FF000000'}},
+    };
+    const baseFont  = {name:'맑은 고딕', size:10, bold:false, color:{argb:'FF000000'}};
+    const baseAlign = {horizontal:'center', vertical:'middle'};
+
+    function styleRow(row, colCount){
+      for(let c=1; c<=colCount; c++){
+        const cell = row.getCell(c);
+        cell.font      = {...baseFont};
+        cell.alignment = {...baseAlign};
+        cell.border    = borderAll;
+      }
+    }
+
     const sheet1rows = buildQuickSheet1(accNo);
-    sheet1rows.forEach((rowData, ri) => {
+    const COL = 6;
+
+    sheet1rows.forEach((rowData) => {
       const row = ws1.addRow(rowData);
-      // 제목 행 (0번째) 굵게
-      if(ri === 0){
-        row.font = {bold:true, size:13};
+      row.height = 18;
+      styleRow(row, COL);
+
+      // 헤더 행 (No. 로 시작) — 배경 연회색
+      if(rowData[0] === 'No.'){
+        for(let c=1;c<=COL;c++){
+          row.getCell(c).fill = {
+            type:'pattern', pattern:'solid',
+            fgColor:{argb:'FFD9D9D9'}
+          };
+        }
       }
-      // 헤더 행 (No./거리/시간...) 배경색
-      if(rowData[0]==='No.'){
-        row.eachCell(cell=>{
-          cell.font = {bold:true};
-          cell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFD9E1F2'}};
-          cell.alignment = {horizontal:'center'};
-        });
-      }
-      // 속도 셀 컬러 (4번째 컬럼, 숫자인 경우)
-      if(typeof rowData[3] === 'number'){
-        const cell = row.getCell(4);
-        cell.font = {bold:true, color:{argb: rowData[3]<=80?'FF1F7A45':'FFCC0000'}};
-        cell.alignment = {horizontal:'center'};
+
+      // 섹션 제목 행 — State 또는 Heat aging 포함, 나머지 열이 undefined
+      const isSectionTitle = typeof rowData[0]==='string'
+        && rowData[1]===undefined;
+      if(isSectionTitle){
+        row.getCell(1).alignment = {horizontal:'left', vertical:'middle'};
+        row.getCell(1).fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FF404040'}};
+        row.getCell(1).font = {...baseFont, color:{argb:'FFFFFFFF'}};
+        try{ ws1.mergeCells(row.number, 1, row.number, COL); }catch(e){}
       }
     });
+
+    XLSX.utils && void 0;
 
     // ── Sheet2: 사진 ────────────────────────────────────────────────────────
     const ws2 = wb.addWorksheet('사진');
@@ -2249,23 +2276,19 @@ async function quickShareKakao(){
 
     overlay.classList.add('hidden');
 
-    // ── Web Share API로 공유 (카카오톡 등 직접 선택) ────────────────────────
+    // ── Web Share API로 공유 (파일만 전달) ─────────────────────────────────
     if(navigator.canShare && navigator.canShare({files:[new File([blob], fname)]})){
       try{
         await navigator.share({
-          title: `연소성 분석표 — ${accNo}`,
-          text:  `시험일: ${today()}`,
           files: [new File([blob], fname, {type: blob.type})]
         });
         toast('공유 완료.');
       } catch(shareErr){
         if(shareErr.name !== 'AbortError'){
-          // 공유 취소가 아닌 오류면 다운로드로 fallback
           _downloadBlob(blob, fname);
         }
       }
     } else {
-      // Web Share 미지원 기기 — 다운로드
       _downloadBlob(blob, fname);
       toast('저장 완료. 카카오톡에서 파일을 전송하세요.');
     }
@@ -2287,14 +2310,15 @@ function _downloadBlob(blob, fname){
   setTimeout(()=>URL.revokeObjectURL(url), 1000);
 }
 
-// 심플 Sheet1 데이터 빌드 (사진처럼 깔끔하게)
+// 심플 Sheet1 데이터 빌드
 function buildQuickSheet1(accNo){
   const rows = [];
   const dirs = getQDirs();
 
-  rows.push(['연소성 시험 결과 (Flammability Test)']);
-  rows.push([`접수번호: ${accNo}`, '', '', `시험일: ${today()}`]);
-  rows.push([]);
+  // 제목/접수번호 행 (테두리 적용을 위해 6열 채움)
+  rows.push(['연소성 시험 결과 (Flammability Test)', '', '', '', '', '']);
+  rows.push([`접수번호: ${accNo}`, '', '', '', '', '']);
+  rows.push(['','','','','','']); // 빈 행
 
   ['state','heat'].forEach(m=>{
     if(!qActiveTypes[m]) return;
@@ -2306,38 +2330,51 @@ function buildQuickSheet1(accNo){
       const hasData = Object.values(bucket).some(r=>r.dist||r.se);
       if(!hasData) return;
 
-      // 섹션 제목
+      // 섹션 제목 — 1열짜리로 넣고 위에서 merge 처리
       rows.push([label + (dirs.length>1 ? ` [${d}]` : '')]);
-      // 헤더
-      rows.push(['No.','거리 (mm)','시간 (s)','속도 (mm/min)','두께 (mm)','SE']);
+
+      // 컬럼 헤더
+      rows.push(['No.', '거리 (mm)', '시간 (s)', '속도 (mm/min)', '두께 (mm)', 'SE']);
 
       let rates=[], hasSE=false;
       for(let i=1;i<=5;i++){
         const r=bucket[i]||{};
         if(r.se){
-          rows.push([i,'SE','SE','SE', r.thick||'', 'SE']);
+          rows.push([i, 'SE', 'SE', 'SE', r.thick||'', 'O']);
           hasSE=true;
         } else {
+          // 속도: 정수 (소수점 없음)
           const rate = (r.dist && r.time && parseFloat(r.time)>0)
-            ? parseFloat((parseFloat(r.dist)/parseFloat(r.time)*60).toFixed(1)) : '';
+            ? Math.round(parseFloat(r.dist)/parseFloat(r.time)*60) : '';
           if(rate!=='') rates.push(rate);
-          rows.push([i, r.dist||'', r.time||'', rate, r.thick||'', '']);
+          rows.push([
+            i,
+            r.dist ? parseFloat(r.dist) : '',
+            r.time ? parseFloat(r.time) : '',
+            rate,
+            r.thick ? parseFloat(r.thick) : '',
+            ''
+          ]);
         }
       }
 
       // 통계 행
       if(rates.length){
-        const mx = Math.max(...rates), av = rates.reduce((a,b)=>a+b,0)/rates.length;
-        rows.push(['','','최대 (Max.)', mx.toFixed(1)+'  mm/min', mx<=80?'기준 충족 ✓':'기준 초과 ✗','']);
-        rows.push(['','','평균 (Ave.)', av.toFixed(1)+'  mm/min','','']);
+        const mx = Math.max(...rates);
+        const av = Math.round(rates.reduce((a,b)=>a+b,0)/rates.length);
+        rows.push(['', '', '최대 (Max.)', mx, mx<=80?'기준 충족':'기준 초과', '']);
+        rows.push(['', '', '평균 (Ave.)', av, '', '']);
       } else if(hasSE){
-        rows.push(['','','결과','SE — 자기소화 (합격)','','']);
+        rows.push(['', '', '결과', 'SE — 자기소화', '합격', '']);
       }
 
-      // 판정
+      // 판정 행
       const v = qVerdicts[m];
-      rows.push(['','','판정', v==='pass'?'합 격 (Pass)':v==='fail'?'불합격 (Fail)':'—','','']);
-      rows.push([]);
+      rows.push(['', '', '판정',
+        v==='pass' ? '합 격 (Pass)' : v==='fail' ? '불합격 (Fail)' : '—',
+        '', ''
+      ]);
+      rows.push(['','','','','','']); // 구분 빈 행
     });
   });
 

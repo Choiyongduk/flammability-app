@@ -330,7 +330,7 @@ canvas#snapCanvas{display:none;}
   <!-- STEP 2.5: 빠른 모드 직접 측정 입력 -->
   <div class="card">
     <div class="card-hd" onclick="tog(this)">
-      <div class="card-hd-l"><span class="ctag">측정</span><span class="ctitle">직접 입력 (선택)</span></div>
+      <div class="card-hd-l"><span class="ctag">측정</span><span class="ctitle">직접 입력 / 수정</span></div>
       <span class="chev">▾</span>
     </div>
     <div class="card-bd">
@@ -425,7 +425,7 @@ canvas#snapCanvas{display:none;}
   <button onclick="quickShareKakao()" style="
     flex:1;padding:13px;background:#FEE500;color:#3A1D1D;border:none;
     border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;
-  ">💬 카카오 전송</button>
+  ">📊 엑셀로 저장</button>
   <button onclick="quickExport()" style="
     flex:1;padding:13px;background:var(--gr);color:#fff;border:none;
     border-radius:var(--rs);font-size:15px;font-weight:700;cursor:pointer;
@@ -955,27 +955,37 @@ function togQSE(m,key,i){
   updQSum(m);
 }
 function updQSum(m){
-  let rates=[];
+  var rates=[], hasSE=false, hasData=false;
   getQDirs().forEach(function(d){
     var key=m+'_'+(d||'MD');
     if(!qMdata[m][key]) return;
     for(var i=1;i<=N;i++){
       var r=qMdata[m][key][i];
-      if(r&&!r.se&&r.rate&&!isNaN(parseFloat(r.rate))) rates.push(parseFloat(r.rate));
+      if(!r) continue;
+      if(r.se){ hasSE=true; hasData=true; }
+      else if(r.dist!==''&&r.dist!==undefined&&r.dist!==null){
+        hasData=true;
+        if(r.rate&&!isNaN(parseFloat(r.rate))) rates.push(parseFloat(r.rate));
+      }
     }
   });
   var pfx = m==='state'?'qs':'qh';
   var mxEl=document.getElementById(pfx+'Max');
   var avEl=document.getElementById(pfx+'Ave');
   var crEl=document.getElementById(pfx+'Crit');
-  if(!rates.length){
+  if(!hasData){
     if(mxEl){mxEl.textContent='-';mxEl.className='si-val';}
     if(avEl){avEl.textContent='-';avEl.className='si-val';}
     if(crEl){crEl.textContent='-';crEl.className='si-val';}
+  } else if(!rates.length){
+    // SE만 있는 경우
+    if(mxEl){mxEl.textContent='SE';mxEl.className='si-val ok';}
+    if(avEl){avEl.textContent='SE';avEl.className='si-val ok';}
+    if(crEl){crEl.textContent='충족 ✓';crEl.className='si-val ok';}
   } else {
     var mx=Math.max.apply(null,rates), av=rates.reduce(function(a,b){return a+b;},0)/rates.length;
-    if(mxEl) mxEl.textContent=mx.toFixed(1);
-    if(avEl) avEl.textContent=av.toFixed(1);
+    if(mxEl){mxEl.textContent=mx.toFixed(1);mxEl.className='si-val'+(mx>80?' ng':'');}
+    if(avEl){avEl.textContent=av.toFixed(1);avEl.className='si-val';}
     if(crEl){crEl.textContent=mx<=80?'충족 ✓':'초과 ✗';crEl.className='si-val '+(mx<=80?'ok':'ng');}
   }
   autoQVerdict();
@@ -1097,6 +1107,8 @@ function applyToQData(parsed){
   });
   syncQVerdicts();
   renderQTables();
+  // ★ 테이블 렌더 후 Max/Ave/기준 즉시 업데이트
+  ['state','heat'].forEach(m => updQSum(m));
 }
 
 // ─── 빠른 모드 판정 버튼 동기화 ─────────────────────────────────────────────
@@ -1986,139 +1998,145 @@ function showDownloadModal(url, accNo){
   modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
 }
 
-// ─── 빠른 모드 카카오 데이터 공유 ────────────────────────────────────────────
-function quickShareKakao(){
+// ─── 빠른 모드 카카오 전송 = 심플 xlsx 생성 ─────────────────────────────────
+async function quickShareKakao(){
   const rawAccNo = document.getElementById('qAccNo')?.value||'';
-  const accNo = formatAccNo(rawAccNo) || '(접수번호 없음)';
+  const accNo = formatAccNo(rawAccNo) || '분석표';
 
-  // 텍스트 데이터 빌드
-  let lines = [];
-  lines.push('🔥 연소성 시험 결과');
-  lines.push('━━━━━━━━━━━━━━━━━━');
-  lines.push(`📋 접수번호: ${accNo}`);
-  lines.push(`📅 시험일: ${today()}`);
-  lines.push('');
+  const overlay = document.getElementById('loadingOverlay');
+  const ltxt    = document.getElementById('loadingTxt');
+  ltxt.textContent = '엑셀 파일 생성 중...';
+  overlay.classList.remove('hidden');
 
+  try {
+    const wb = XLSX.utils.book_new();
+
+    // ── Sheet1: 심플 데이터표 ─────────────────────────────────────────────
+    const ws1rows = buildQuickSheet1(accNo);
+    const ws1 = XLSX.utils.aoa_to_sheet(ws1rows);
+    ws1['!cols'] = [{wch:6},{wch:14},{wch:14},{wch:16},{wch:14},{wch:8}];
+    // 셀 스타일 (헤더 행 굵게) — xlsx.full.min.js는 스타일 미지원이므로 생략
+    XLSX.utils.book_append_sheet(wb, ws1, '연소성');
+
+    // ── Sheet2: 사진 (base64 이미지 삽입) ────────────────────────────────
+    const ws2rows = [
+      ['연소성 시험 사진'],
+      [`접수번호: ${accNo}`, '', `시험일: ${today()}`],
+      [],
+    ];
+    const hasAnyPhoto = photos.some(p=>p.data);
+    if(!hasAnyPhoto){
+      ws2rows.push(['(첨부 사진 없음)']);
+    } else {
+      photos.forEach(p=>{
+        ws2rows.push([p.labelKo, p.data ? '(사진 첨부됨)' : '(없음)']);
+      });
+    }
+    const ws2 = XLSX.utils.aoa_to_sheet(ws2rows);
+    ws2['!cols'] = [{wch:20},{wch:20},{wch:20}];
+    XLSX.utils.book_append_sheet(wb, ws2, '사진');
+
+    // ── 다운로드 ──────────────────────────────────────────────────────────
+    const fname = `연소성_${accNo}_${today()}.xlsx`;
+    XLSX.writeFile(wb, fname);
+
+    overlay.classList.add('hidden');
+    toast('📊 엑셀 저장 완료! 카카오톡에서 파일로 전송하세요.');
+
+    // 사진도 있으면 안내 모달
+    if(hasAnyPhoto) showQuickPhotoModal();
+
+  } catch(err){
+    overlay.classList.add('hidden');
+    toast('❗ 오류: ' + err.message);
+    console.error(err);
+  }
+}
+
+// 심플 Sheet1 데이터 빌드 (사진처럼 깔끔하게)
+function buildQuickSheet1(accNo){
+  const rows = [];
   const dirs = getQDirs();
+
+  rows.push(['연소성 시험 결과 (Flammability Test)']);
+  rows.push([`접수번호: ${accNo}`, '', '', `시험일: ${today()}`]);
+  rows.push([]);
+
   ['state','heat'].forEach(m=>{
     if(!qActiveTypes[m]) return;
-    const label = m==='state' ? '▶ 상태 (State)' : '▶ 고온방치 (Heat aging)';
+    const label = m==='state' ? '상태 (State)' : '고온방치 (Heat aging)';
+
     dirs.forEach(d=>{
       const key = m+'_'+(d||'MD');
       const bucket = qMdata[m][key]||{};
       const hasData = Object.values(bucket).some(r=>r.dist||r.se);
       if(!hasData) return;
 
-      lines.push(label + (dirs.length>1?` [${d}]`:''));
-      lines.push('No. | 거리(mm) | 시간(s) | 속도(mm/min)');
-      lines.push('─────────────────────────────');
-      let rates=[];
+      // 섹션 제목
+      rows.push([label + (dirs.length>1 ? ` [${d}]` : '')]);
+      // 헤더
+      rows.push(['No.','거리 (mm)','시간 (s)','속도 (mm/min)','두께 (mm)','SE']);
+
+      let rates=[], hasSE=false;
       for(let i=1;i<=5;i++){
         const r=bucket[i]||{};
-        if(!r.dist && !r.se) continue;
         if(r.se){
-          lines.push(` ${i}  |    SE    |    SE   |    SE`);
+          rows.push([i,'SE','SE','SE', r.thick||'', 'SE']);
+          hasSE=true;
         } else {
-          const rate = r.rate ? parseFloat(r.rate).toFixed(1) : '-';
-          if(r.rate) rates.push(parseFloat(r.rate));
-          lines.push(` ${i}  | ${String(r.dist||'-').padEnd(8)}| ${String(r.time||'-').padEnd(7)}| ${rate}`);
+          const rate = (r.dist && r.time && parseFloat(r.time)>0)
+            ? parseFloat((parseFloat(r.dist)/parseFloat(r.time)*60).toFixed(1)) : '';
+          if(rate!=='') rates.push(rate);
+          rows.push([i, r.dist||'', r.time||'', rate, r.thick||'', '']);
         }
       }
+
+      // 통계 행
       if(rates.length){
-        const mx=Math.max(...rates), av=rates.reduce((a,b)=>a+b,0)/rates.length;
-        lines.push(`최대: ${mx.toFixed(1)} mm/min | 평균: ${av.toFixed(1)} mm/min`);
-        lines.push(`기준(≤80): ${mx<=80?'✅ 충족':'❌ 초과'}`);
+        const mx = Math.max(...rates), av = rates.reduce((a,b)=>a+b,0)/rates.length;
+        rows.push(['','','최대 (Max.)', mx.toFixed(1)+'  mm/min', mx<=80?'기준 충족 ✓':'기준 초과 ✗','']);
+        rows.push(['','','평균 (Ave.)', av.toFixed(1)+'  mm/min','','']);
+      } else if(hasSE){
+        rows.push(['','','결과','SE — 자기소화 (합격)','','']);
       }
-      lines.push('');
+
+      // 판정
+      const v = qVerdicts[m];
+      rows.push(['','','판정', v==='pass'?'합 격 (Pass)':v==='fail'?'불합격 (Fail)':'—','','']);
+      rows.push([]);
     });
   });
 
-  // 판정
-  const sv = qVerdicts.state, hv = qVerdicts.heat;
-  lines.push('━━━━━━━━━━━━━━━━━━');
-  if(qActiveTypes.state) lines.push(`판정 (상태): ${sv==='pass'?'✅ 합격':sv==='fail'?'❌ 불합격':'—'}`);
-  if(qActiveTypes.heat)  lines.push(`판정 (고온): ${hv==='pass'?'✅ 합격':hv==='fail'?'❌ 불합격':'—'}`);
-
-  const textData = lines.join('\n');
-
-  // 사진 있는지 확인
-  const hasPhotos = photos.some(p=>p.data);
-
-  // 공유 모달 표시
-  showKakaoShareModal(textData, hasPhotos);
+  return rows;
 }
 
-function showKakaoShareModal(textData, hasPhotos){
-  document.getElementById('kakaoShareModal')?.remove();
-
+// 사진 다운로드 안내 모달
+function showQuickPhotoModal(){
+  document.getElementById('quickPhotoModal')?.remove();
   const modal = document.createElement('div');
-  modal.id = 'kakaoShareModal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:900;display:flex;align-items:flex-end;justify-content:center;';
+  modal.id = 'quickPhotoModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;';
 
   const photoCount = photos.filter(p=>p.data).length;
-
   modal.innerHTML = `
-    <div style="background:var(--s);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:680px;padding:20px 16px;max-height:80vh;overflow-y:auto;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-        <div style="font-size:15px;font-weight:700;">💬 카카오톡으로 전송</div>
-        <button onclick="document.getElementById('kakaoShareModal').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--tx3);">✕</button>
+    <div style="background:var(--s);border-radius:var(--r);padding:22px;width:100%;max-width:360px;">
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px;">📊 엑셀 저장 완료</div>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:16px;">
+        시험 사진 ${photoCount}장을 저장하면 카카오톡으로 함께 전송할 수 있어요.
       </div>
-
-      <!-- 텍스트 미리보기 -->
-      <div style="background:var(--s3);border-radius:var(--rs);padding:12px;margin-bottom:12px;font-size:12px;font-family:monospace;white-space:pre-wrap;max-height:200px;overflow-y:auto;color:var(--tx2);">${textData.replace(/</g,'&lt;')}</div>
-
-      <!-- 사진 미리보기 -->
-      ${hasPhotos ? `
-      <div style="margin-bottom:12px;">
-        <div style="font-size:12px;font-weight:700;color:var(--tx2);margin-bottom:6px;">📸 첨부 사진 (${photoCount}장)</div>
-        <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;">
-          ${photos.filter(p=>p.data).map(p=>`<img src="${p.data}" style="height:70px;border-radius:5px;flex-shrink:0;">`).join('')}
-        </div>
-      </div>` : '<div style="font-size:12px;color:var(--tx3);margin-bottom:12px;">📷 첨부 사진 없음</div>'}
-
-      <div style="font-size:11px;color:var(--tx3);background:var(--acl);border-radius:var(--rs);padding:8px 10px;margin-bottom:12px;">
-        💡 텍스트를 복사한 후 카카오톡에 붙여넣기 하세요.<br>
-        사진은 갤러리에서 직접 선택해서 전송하세요.
-      </div>
-
-      <div style="display:flex;gap:8px;">
-        <button onclick="copyKakaoText()" id="kakaoTextCopyBtn" style="
-          flex:2;padding:13px;background:#FEE500;color:#3A1D1D;border:none;
-          border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;">
-          📋 텍스트 복사
-        </button>
-        ${hasPhotos ? `<button onclick="downloadKakaoPhotos()" style="
-          flex:1;padding:13px;background:var(--ac);color:#fff;border:none;
-          border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer;">
-          📷 사진 저장
-        </button>` : ''}
-      </div>
+      <button onclick="downloadKakaoPhotos();document.getElementById('quickPhotoModal').remove();" style="
+        width:100%;padding:12px;background:var(--ac);color:#fff;border:none;
+        border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;">
+        📷 사진 ${photoCount}장 저장
+      </button>
+      <button onclick="document.getElementById('quickPhotoModal').remove();" style="
+        width:100%;padding:10px;background:var(--s2);border:1px solid var(--bd);
+        border-radius:var(--rs);font-size:13px;cursor:pointer;color:var(--tx2);">
+        닫기
+      </button>
     </div>`;
-
   document.body.appendChild(modal);
   modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
-
-  // 텍스트 복사 함수
-  window._kakaoTextData = textData;
-}
-
-function copyKakaoText(){
-  const text = window._kakaoTextData || '';
-  navigator.clipboard.writeText(text).then(()=>{
-    const btn = document.getElementById('kakaoTextCopyBtn');
-    if(btn){ btn.textContent='✅ 복사됨!'; setTimeout(()=>{ btn.textContent='📋 텍스트 복사'; },2000); }
-    toast('📋 텍스트 복사 완료! 카카오톡에 붙여넣기 하세요.');
-  }).catch(()=>{
-    // iOS fallback — textarea 선택
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.cssText = 'position:fixed;top:-9999px;';
-    document.body.appendChild(ta);
-    ta.select(); ta.setSelectionRange(0,99999);
-    try{ document.execCommand('copy'); toast('📋 복사 완료!'); }
-    catch(e){ toast('복사 실패 — 직접 선택해서 복사해주세요.'); }
-    document.body.removeChild(ta);
-  });
 }
 
 function downloadKakaoPhotos(){

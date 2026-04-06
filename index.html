@@ -844,11 +844,6 @@ canvas#snapCanvas{display:none;}
       <div class="ci" onclick="chk(this)" data-key="note_nondirec"><div class="ci-box"></div><div class="ci-txt"><span id="n_nd_ko">방향성 없는 시험편으로 시험하였음.</span><span class="ci-sub" id="n_nd_en">Test was conducted with non-directional specimen</span></div></div>
       <div class="ci" onclick="chk(this)" data-key="note_nodiff"><div class="ci-box"></div><div class="ci-txt"><span id="n_nodiff_ko">방향별 연소속도의 차이가 없음.</span><span class="ci-sub" id="n_nodiff_en">No difference in burn rate by direction.</span></div></div>
     </div>
-    <div class="fg g2" style="margin-top:8px;">
-      <div class="f"><label id="l_stThick">상태 시험편 두께</label><input type="text" id="stateThickNote" placeholder="3.0 mm"></div>
-      <div class="f"><label id="l_htThick">고온방치 시험편 두께</label><input type="text" id="heatThickNote" placeholder="3.0 mm"></div>
-    </div>
-    <div class="f" style="margin-top:8px;"><label id="l_memo">기타 메모</label><textarea id="memo" placeholder="추가 사항..."></textarea></div>
   </div>
 </div>
 
@@ -970,6 +965,23 @@ function g(id){ return document.getElementById(id)?.value||''; }
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 document.getElementById('testDate').value = today();
 document.getElementById('labDate').value  = today();
+// 기간 자동 세팅
+(function setDefaultPeriods(){
+  const d = new Date();
+  const fmt = dt => dt.toISOString().split('T')[0];
+  // 상태조절: 전날 ~ 오늘
+  const yesterday = new Date(d); yesterday.setDate(d.getDate()-1);
+  const el_sf = document.getElementById('statePeriodFrom');
+  const el_st = document.getElementById('statePeriodTo');
+  if(el_sf) el_sf.value = fmt(yesterday);
+  if(el_st) el_st.value = fmt(d);
+  // 고온방치: 7일 전 ~ 오늘
+  const weekAgo = new Date(d); weekAgo.setDate(d.getDate()-7);
+  const el_hf = document.getElementById('heatPeriodFrom');
+  const el_ht = document.getElementById('heatPeriodTo');
+  if(el_hf) el_hf.value = fmt(weekAgo);
+  if(el_ht) el_ht.value = fmt(d);
+})();
 // 상세 탭 footer 초기 숨김 (빠른 모드로 시작하므로)
 const _ff = document.querySelector('.footer');
 if(_ff) _ff.style.display = 'none';
@@ -1822,8 +1834,7 @@ function collect(){
     statePeriodFrom:g('statePeriodFrom'), statePeriodTo:g('statePeriodTo'),
     heatPeriodFrom:g('heatPeriodFrom'),   heatPeriodTo:g('heatPeriodTo'),
     roomTemp:g('roomTemp'), roomHumid:g('roomHumid'),
-    labDate:g('labDate'), equipment:g('equipment'), memo:g('memo'),
-    stateThickNote:g('stateThickNote'), heatThickNote:g('heatThickNote'),
+    labDate:g('labDate'), equipment:g('equipment'),
     lang, dir, activeTypes:{...activeTypes},
     mdata:JSON.parse(JSON.stringify(mdata)),
     verdicts:{...verdicts},
@@ -1841,7 +1852,7 @@ function collect(){
 
 function resetForm(){
   if(!confirm(lang==='en'?'Reset all data?':'모든 데이터를 초기화할까요?')) return;
-  ['accNo','prodName','tester','memo','stateThickNote','heatThickNote','equipment',
+  ['accNo','prodName','tester','equipment',
    'statePeriodFrom','statePeriodTo','heatPeriodFrom','heatPeriodTo']
     .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('testDate').value=today();
@@ -1974,10 +1985,10 @@ async function exportExcel(){
       }
     }
 
-    // 사진 리사이즈 (GAS payload 크기 제한 대비)
+    // 사진 리사이즈 (GAS payload 제한 대비 — 300x225로 축소)
     const processedPhotos = await Promise.all(raw.photos.map(async ph => {
       if(!ph.data) return {...ph, data: null};
-      const resized = await resizeImage(ph.data, 400, 300);
+      const resized = await resizeImage(ph.data, 300, 225);
       return {...ph, data: resized.split(',')[1] || ''};
     }));
 
@@ -2007,8 +2018,7 @@ async function exportExcel(){
                      verdicts.heat  === 'fail' ? '불합격(Fail)' : '합 격(Pass)  /  불합격(Fail)',
       condKo, condEn,
       noteKo, noteEn,
-      remark:        g('stateThickNote') ?
-                     `상태 시험편 두께 : ${g('stateThickNote')} mm / Heat aging : ${g('heatThickNote')||g('stateThickNote')} mm` : '',
+      remark:        '',
       lang:          raw.lang,
       photos:        processedPhotos,
     };
@@ -2884,20 +2894,53 @@ function applyOcrResult(){
   if(!ocrParsed) return;
   const data = ocrParsed;
 
-  // 접수번호 자동 입력 (빠른 모드 필드에만)
+  // ── 접수번호 ─────────────────────────────────────────────────────────────
   if(data.accNo){
     const formatted = formatAccNo(data.accNo);
+    // 빠른 모드
     const qField = document.getElementById('qAccNo');
-    if(qField){
-      qField.value = formatted;
-      previewAccNo(formatted);
-    }
+    if(qField){ qField.value = formatted; previewAccNo(formatted); }
+    // 상세 탭
+    const fField = document.getElementById('accNo');
+    if(fField) fField.value = formatted;
   }
 
-  // 빠른 모드 전용 qData / qMdata에 적용
+  // ── 빠른 모드 qMdata 적용 ────────────────────────────────────────────────
   applyToQData(ocrParsed);
 
-  // qDataPreview 표시
+  // ── 상세 탭 mdata 적용 ───────────────────────────────────────────────────
+  const parsedDir = (data.dir === 'none' || !data.dir) ? 'MD' : data.dir;
+  dir = parsedDir;
+  // 방향 버튼 동기화 (상세 탭 .dp)
+  const dirIdx = ['none','MD','TD','both'].indexOf(parsedDir);
+  document.querySelectorAll('#formView .dp').forEach((p,i)=>{
+    p.classList.toggle('on', i === (dirIdx < 0 ? 1 : dirIdx));
+  });
+
+  const formDirs = parsedDir==='both' ? ['MD','TD'] : ['MD'];
+  ['state','heat'].forEach(m=>{
+    formDirs.forEach(d=>{
+      const key = m+'_'+d;
+      if(!mdata[m][key]) mdata[m][key] = {};
+      const rows = (data[m]||{})[d] || [];
+      for(let i=0; i<5; i++){
+        const r = rows[i] || {dist:'',time:'',thick:'',se:false};
+        const dist = r.se ? '0' : (r.dist||'');
+        const time = r.se ? '0' : (r.time||'');
+        let rate = '';
+        if(!r.se && dist && time && parseFloat(time)>0){
+          rate = (parseFloat(dist)/parseFloat(time)*60).toFixed(1);
+        }
+        mdata[m][key][i+1] = {dist, time, thick:r.thick||'', rate, se:r.se||false};
+      }
+    });
+  });
+
+  // 상세 탭 테이블 다시 그리기
+  renderTables();
+  autoVerdict();
+
+  // ── 빠른 모드 미리보기 ───────────────────────────────────────────────────
   const preview = document.getElementById('qDataPreview');
   if(preview) preview.style.display = '';
   updateQDataPreview();

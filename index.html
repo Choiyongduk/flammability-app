@@ -175,7 +175,7 @@ canvas#snapCanvas{display:none;}
 .empty{text-align:center;padding:36px;color:var(--tx3);font-size:13px;}
 
 /* ── FOOTER ── */
-.footer{position:sticky;bottom:0;background:var(--s);border-top:1px solid var(--bd);padding:10px 14px;display:flex;gap:7px;width:100%;}
+.footer{position:fixed;bottom:0;left:0;right:0;background:var(--s);border-top:1px solid var(--bd);padding:10px 14px;display:flex;gap:7px;z-index:100;}
 
 /* ── TOAST ── */
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) scale(.9);background:#111827;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center;}
@@ -186,7 +186,7 @@ canvas#snapCanvas{display:none;}
 .snote{font-size:11px;color:var(--tx2);background:var(--s3);border-left:3px solid var(--ac);padding:8px 10px;border-radius:0 4px 4px 0;margin-bottom:10px;line-height:1.5;}
 .dir-badge{font-size:10px;padding:2px 8px;border-radius:20px;background:var(--orl);color:var(--or);font-weight:700;}
 .ds-title{font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:6px;display:flex;align-items:center;gap:5px;text-transform:uppercase;}
-.hidden{display:none!important;pointer-events:none!important;visibility:hidden!important;position:absolute!important;}
+.hidden{display:none!important;pointer-events:none!important;visibility:hidden!important;}
 
 /* ── LOADING ── */
 .loading{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
@@ -420,8 +420,8 @@ canvas#snapCanvas{display:none;}
 </div>
 </div>
 
-<!-- 빠른 입력 전용 sticky footer -->
-<div id="quickFooter" style="position:sticky;bottom:0;background:var(--s);border-top:1px solid var(--bd);padding:10px 14px;display:flex;gap:7px;width:100%;">
+<!-- 빠른 입력 전용 sticky footer — quickView 안에 위치 -->
+<div id="quickFooter" style="position:fixed;bottom:0;left:0;right:0;background:var(--s);border-top:1px solid var(--bd);padding:10px 14px;display:flex;gap:7px;z-index:100;max-width:100%;">
   <button onclick="quickShareKakao()" style="
     flex:1;padding:13px;background:#FEE500;color:#3A1D1D;border:none;
     border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;
@@ -779,6 +779,9 @@ function g(id){ return document.getElementById(id)?.value||''; }
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 document.getElementById('testDate').value = today();
 document.getElementById('labDate').value  = today();
+// 상세 탭 footer 초기 숨김 (빠른 모드로 시작하므로)
+const _ff = document.querySelector('.footer');
+if(_ff) _ff.style.display = 'none';
 renderPhotos();
 renderTables();
 renderQTables();
@@ -1300,9 +1303,13 @@ function showView(v){
   document.getElementById('nQuick').classList.toggle('on', v==='quick');
   document.getElementById('nForm').classList.toggle('on', v==='form');
   document.getElementById('nHist').classList.toggle('on', v==='history');
-  // 빠른입력 footer ↔ 상세입력 footer 전환
+
+  // footer 전환 — position:fixed이므로 display로만 제어
   const qf = document.getElementById('quickFooter');
+  const ff = document.querySelector('.footer');
   if(qf) qf.style.display = v==='quick' ? 'flex' : 'none';
+  if(ff) ff.style.display = v==='form'  ? 'flex' : 'none';
+
   if(v==='history') renderHistory();
   if(v==='quick') renderQPhotos();
 }
@@ -2142,6 +2149,8 @@ function shareExcelKakao(url, accNo){
     document.body.removeChild(ta);
   });
 }
+
+function copyLink(url){
   navigator.clipboard.writeText(url).then(()=>{
     toast('🔗 링크가 복사됐어요!');
   }).catch(()=>{ toast('링크: '+url); });

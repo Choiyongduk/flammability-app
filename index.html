@@ -1863,7 +1863,7 @@ function resetForm(){
 
 // ─── EXCEL EXPORT via Python backend ─────────────────────────────────────────
 // ─── Google Apps Script 웹앱 URL ─────────────────────────────────────────────
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyqwX1fDc1my1QryiWDT4qI76rEmDEolbar6-bqa69eF0uJePM8HW8YzNxAP4xe3kQ7/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyGrNGNyzG4rE7FTbt9GCPEY_zrJPm7vXUKTlx3C7cZXLeey27YJKmCVC-fZACK6ifU-A/exec';
 
 // ── Claude API 키 관리 (로컬 저장, GitHub에 노출 안됨) ────────────────────────
 function getApiKey(){
@@ -1977,8 +1977,8 @@ async function exportExcel(){
       }
     }
 
-    // 사진은 GAS에서 처리하지 않으므로 payload에서 제외
-    // (사진 포함 시 payload 크기가 커져 GAS 인프라 에러 발생)
+    // photos는 GAS 처리 시간 초과 원인 — 제외하고 전송
+    // (v5 GAS가 photos를 처리하려 할 때 메모리/시간 초과로 서버 오류 발생)
 
     const payload = {
       accNo:         g('accNo'),
@@ -2008,6 +2008,7 @@ async function exportExcel(){
       noteKo, noteEn,
       remark: '',
       lang:   raw.lang,
+      photos: [],   // 사진 제외 — GAS 처리 시간 초과 방지
     };
 
     // ── GAS 호출 ───────────────────────────────────────────────────────────
@@ -2049,10 +2050,17 @@ function showErrorModal(msg){
   m.innerHTML = `
     <div style="background:var(--s);border:1px solid var(--bd);border-radius:var(--r);padding:22px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto;">
       <div style="font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--rdt);margin-bottom:12px;">서버 오류 상세</div>
-      <pre style="font-size:11px;color:var(--tx2);white-space:pre-wrap;word-break:break-all;background:var(--bg2);padding:12px;border-radius:var(--rs);border:1px solid var(--bd);max-height:300px;overflow-y:auto;">${msg.replace(/</g,'&lt;')}</pre>
-      <div style="font-size:11px;color:var(--tx3);margin-top:10px;">이 내용을 캡처해서 개발자에게 전달해주세요.</div>
+      <pre style="font-size:11px;color:var(--tx2);white-space:pre-wrap;word-break:break-all;background:var(--bg2);padding:12px;border-radius:var(--rs);border:1px solid var(--bd);max-height:200px;overflow-y:auto;">${msg.replace(/</g,'&lt;')}</pre>
+      <div style="font-size:11px;color:var(--tx3);margin:10px 0;">GAS 서버 연결 상태를 확인해보세요.</div>
+      <button onclick="testGasConnection()" style="
+        width:100%;padding:10px;margin-bottom:8px;
+        background:var(--goldl);border:1px solid var(--goldb);border-radius:var(--rs);
+        font-size:12px;font-weight:600;letter-spacing:.5px;cursor:pointer;color:var(--gold2);">
+        GAS 서버 연결 테스트
+      </button>
+      <div id="gasTestResult" style="font-size:11px;padding:8px;border-radius:var(--rs);display:none;margin-bottom:8px;"></div>
       <button onclick="document.getElementById('gasErrModal').remove()" style="
-        margin-top:14px;width:100%;padding:10px;
+        width:100%;padding:10px;
         background:var(--s2);border:1px solid var(--bd);border-radius:var(--rs);
         font-size:12px;font-weight:600;letter-spacing:.5px;cursor:pointer;color:var(--tx2);">
         닫기
@@ -2060,6 +2068,33 @@ function showErrorModal(msg){
     </div>`;
   document.body.appendChild(m);
   m.addEventListener('click', e=>{ if(e.target===m) m.remove(); });
+}
+
+async function testGasConnection(){
+  const el = document.getElementById('gasTestResult');
+  if(!el) return;
+  el.style.display = 'block';
+  el.style.background = 'var(--bg2)';
+  el.style.border = '1px solid var(--bd)';
+  el.style.color = 'var(--tx3)';
+  el.textContent = '연결 테스트 중...';
+  try{
+    const res = await fetch(GAS_URL, {method:'GET'});
+    const txt = await res.text();
+    const json = JSON.parse(txt);
+    if(json.status === 'ok'){
+      el.style.color = 'var(--grt)';
+      el.style.border = '1px solid var(--grt)';
+      el.textContent = '✓ GAS 서버 정상 응답: ' + json.message;
+    } else {
+      el.style.color = 'var(--rdt)';
+      el.textContent = '응답: ' + txt.slice(0,200);
+    }
+  } catch(e){
+    el.style.color = 'var(--rdt)';
+    el.style.border = '1px solid var(--rdt)';
+    el.textContent = '연결 실패: ' + e.message + '\n→ GAS 웹앱이 배포되지 않았거나 URL이 만료됐을 수 있습니다.';
+  }
 }
 
 // ── 체크 항목 → 텍스트 변환 (체크된 항목만) ──────────────────────────────────

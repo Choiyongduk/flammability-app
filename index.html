@@ -2151,39 +2151,46 @@ function buildNoteEn(c){
 
 // ── 다운로드 & 공유 모달 ──────────────────────────────────────────────────────
 function showDownloadModal(url, accNo){
-  // 기존 모달 제거
   document.getElementById('dlModal')?.remove();
 
   const modal = document.createElement('div');
   modal.id = 'dlModal';
-  modal.style.cssText = `
-    position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;
-    display:flex;align-items:center;justify-content:center;padding:20px;
-  `;
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;';
   modal.innerHTML = `
-    <div style="background:var(--s);border-radius:var(--r);padding:22px;width:100%;max-width:340px;">
-      <div style="font-size:15px;font-weight:700;margin-bottom:6px;">✅ 분석표 생성 완료!</div>
-      <div style="font-size:12px;color:var(--tx3);margin-bottom:18px;">${accNo || '연소성분석표'} — MASTER TEMPLATE 기반</div>
-
-      <a href="${url}" target="_blank" style="
-        display:block;text-align:center;padding:12px;background:var(--gr);color:#fff;
-        border-radius:var(--rs);font-size:14px;font-weight:700;text-decoration:none;margin-bottom:10px;
-      ">엑셀 다운로드</a>
+    <div style="background:var(--s);border:1px solid var(--bd);border-radius:var(--r);padding:22px;width:100%;max-width:340px;">
+      <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">생성 완료</div>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:20px;">${accNo || '연소성분석표'}</div>
 
       <button onclick="shareExcelKakao('${url}','${accNo}')" style="
-        width:100%;padding:12px;background:#FEE500;color:#3A1D1D;border:none;
-        border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px;
-      ">카카오톡 공유</button>
+        width:100%;padding:13px;
+        background:linear-gradient(135deg,var(--gr),#145c3b);color:#e8f7ef;
+        border:1px solid var(--gr);border-radius:var(--rs);
+        font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+        cursor:pointer;margin-bottom:8px;">
+        공유하기
+      </button>
+
+      <a href="${url}" target="_blank" style="
+        display:block;text-align:center;padding:12px;
+        background:var(--goldl);color:var(--gold2);
+        border:1px solid var(--goldb);border-radius:var(--rs);
+        font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+        text-decoration:none;margin-bottom:8px;">
+        엑셀 다운로드
+      </a>
 
       <button onclick="copyLink('${url}')" style="
-        width:100%;padding:10px;background:var(--s2);border:1px solid var(--bd);
-        border-radius:var(--rs);font-size:13px;cursor:pointer;margin-bottom:14px;color:var(--tx2);font-weight:600;
-      ">링크 복사</button>
+        width:100%;padding:10px;
+        background:var(--s2);border:1px solid var(--bd);border-radius:var(--rs);
+        font-size:11px;letter-spacing:.5px;cursor:pointer;color:var(--tx3);margin-bottom:12px;">
+        링크 복사
+      </button>
 
       <button onclick="document.getElementById('dlModal').remove()" style="
-        width:100%;padding:9px;background:transparent;border:none;
-        font-size:13px;color:var(--tx3);cursor:pointer;
-      ">닫기</button>
+        width:100%;padding:8px;background:transparent;border:none;
+        font-size:11px;color:var(--tx3);cursor:pointer;letter-spacing:.3px;">
+        닫기
+      </button>
     </div>
   `;
   document.body.appendChild(modal);
@@ -2452,17 +2459,47 @@ function downloadKakaoPhotos(){
   if(downloaded>0) toast(`사진 ${downloaded}장 저장 완료.`);
 }
 
-function shareExcelKakao(url, accNo){
-  const text = `[연소성 분석표]\n접수번호: ${accNo||'-'}\n\n아래 링크에서 엑셀 파일을 다운로드하세요:\n${url}`;
-  navigator.clipboard.writeText(text).then(()=>{
-    toast('링크가 복사되었습니다.');
-  }).catch(()=>{
-    const ta = document.createElement('textarea');
-    ta.value = text; ta.style.cssText='position:fixed;top:-9999px;';
-    document.body.appendChild(ta); ta.select();
-    try{ document.execCommand('copy'); toast('복사 완료.'); } catch(e){}
-    document.body.removeChild(ta);
-  });
+async function shareExcelKakao(url, accNo){
+  const overlay = document.getElementById('loadingOverlay');
+  const ltxt    = document.getElementById('loadingTxt');
+
+  // Web Share API 파일 공유 지원 여부 먼저 확인
+  if(!navigator.share){
+    // 미지원 기기 — 링크 복사로 fallback
+    copyLink(url);
+    return;
+  }
+
+  try{
+    ltxt.textContent = '파일 준비 중...';
+    overlay.classList.remove('hidden');
+
+    // GAS export URL에서 파일 fetch
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('파일 다운로드 실패');
+    const blob = await res.blob();
+    const fname = `연소성분석표_${accNo||'분석표'}_${today()}.xlsx`;
+    const file = new File([blob], fname, {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+
+    overlay.classList.add('hidden');
+
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({ files: [file] });
+    } else {
+      // 파일 공유 미지원 — 다운로드 후 안내
+      _downloadBlob(blob, fname);
+      toast('저장 완료. 카카오톡에서 파일을 전송하세요.');
+    }
+  } catch(err){
+    overlay.classList.add('hidden');
+    if(err.name !== 'AbortError'){
+      // fetch 실패 시 링크 복사로 fallback
+      copyLink(url);
+      toast('파일 공유 실패. 링크가 복사되었습니다.');
+    }
+  }
 }
 
 function copyLink(url){

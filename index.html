@@ -1365,9 +1365,8 @@ function autoVerdict(){
     let hasSE = false;
     let hasData = false;
     getDirs().forEach(d=>{
-      const key = m + (d ? '_'+d : '_MD');
-      const keyAlt = m + (d ? '_'+d : '');
-      const bucket = mdata[m][key] || mdata[m][keyAlt] || {};
+      const key = m + '_' + d;   // 항상 state_MD / state_TD 형태
+      const bucket = mdata[m][key] || {};
       for(let i=1;i<=N;i++){
         const r = bucket[i];
         if(!r) continue;
@@ -1633,7 +1632,7 @@ function renderTables(){
     const area = document.getElementById(m+'TableArea');
     area.innerHTML = '';
     getDirs().forEach(d=>{
-      const key = m+(d?'_'+d:'');
+      const key = m+'_'+d;   // 항상 state_MD 또는 state_TD 형태
       if(!mdata[m][key]) mdata[m][key]={};
       const wrap = document.createElement('div');
       let th = `<div class="ds-title">${m==='state'?'상태 (State)':'고온방치 (Heat aging)'}`;
@@ -1701,7 +1700,7 @@ function togSE(m,key,i){
 function updSum(m){
   let rates=[];
   getDirs().forEach(d=>{
-    const key=m+(d?'_'+d:'');
+    const key=m+'_'+d;   // 항상 state_MD / state_TD 형태
     if(!mdata[m][key]) return;
     for(let i=1;i<=N;i++){
       const r=mdata[m][key][i];
@@ -1949,12 +1948,14 @@ async function exportExcel(){
     const statePeriodStr = sfrom||sto ? fmtDate(sfrom)+'~'+fmtDate(sto) : '';
     const heatPeriodStr  = hfrom||hto ? fmtDate(hfrom)+'~'+fmtDate(hto) : '';
 
-    // 상태(State) 시편 데이터 — 두께 각 행에서 가져오기
+    // 상태(State) / 고온방치(Heat) 시편 데이터
+    // getDirs()는 항상 'MD' 또는 'TD'를 반환 (none일 때도 'MD')
+    // renderTables와 동일: key = m + '_' + d
     const stateArr = [];
     const heatArr  = [];
     for(let i = 1; i <= 5; i++){
-      const sKey = 'state' + (dirs[0] ? '_'+dirs[0] : '');
-      const hKey = 'heat'  + (dirs[0] ? '_'+dirs[0] : '');
+      const sKey = 'state_' + dirs[0];  // 예: 'state_MD'
+      const hKey = 'heat_'  + dirs[0];  // 예: 'heat_MD'
       const sd = (raw.mdata.state[sKey] || {})[i] || {};
       const hd = (raw.mdata.heat[hKey]  || {})[i] || {};
       stateArr.push({ dist: sd.dist||'', time: sd.time||'', thick: sd.thick||'', se: sd.se||false });

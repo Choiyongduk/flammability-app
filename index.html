@@ -327,6 +327,62 @@ canvas#snapCanvas{display:none;}
     </div>
   </div>
 
+  <!-- STEP 2.5: 빠른 모드 직접 측정 입력 -->
+  <div class="card">
+    <div class="card-hd" onclick="tog(this)">
+      <div class="card-hd-l"><span class="ctag">측정</span><span class="ctitle">직접 입력 (선택)</span></div>
+      <span class="chev">▾</span>
+    </div>
+    <div class="card-bd">
+      <div class="snote">OCR 인식 후 수정하거나 직접 입력하세요</div>
+
+      <!-- 타입 선택 -->
+      <div class="type-grid" style="margin-bottom:10px;">
+        <div class="tc on" id="qtcState" onclick="togQType('state')">
+          <div class="tc-chk">✓</div>
+          <div class="tc-title">상태 (State)</div>
+          <div class="tc-sub">(21±5)℃, (55±5)% R.H.</div>
+        </div>
+        <div class="tc on" id="qtcHeat" onclick="togQType('heat')">
+          <div class="tc-chk">✓</div>
+          <div class="tc-title">고온방치 (Heat aging)</div>
+          <div class="tc-sub">(80±3)℃, 168h</div>
+        </div>
+      </div>
+
+      <!-- 방향 선택 (빠른 모드 전용) -->
+      <div class="f" style="margin-bottom:10px;">
+        <label>방향 (Direction)</label>
+        <div class="dir-pills" style="margin-top:4px;" id="qDirPills">
+          <span class="dp on" onclick="setQDir('none',this)">방향없음</span>
+          <span class="dp" onclick="setQDir('MD',this)">MD</span>
+          <span class="dp" onclick="setQDir('TD',this)">TD</span>
+          <span class="dp" onclick="setQDir('both',this)">MD+TD</span>
+        </div>
+      </div>
+
+      <!-- 빠른 모드 상태 테이블 -->
+      <div id="qstateSection">
+        <div id="qstateTableArea"></div>
+        <div class="sumbar">
+          <div class="si"><div class="si-lbl">Max. (mm/min)</div><div class="si-val" id="qsMax">-</div></div>
+          <div class="si"><div class="si-lbl">Ave. (mm/min)</div><div class="si-val" id="qsAve">-</div></div>
+          <div class="si"><div class="si-lbl">기준 ≤80</div><div class="si-val" id="qsCrit">-</div></div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <!-- 빠른 모드 고온방치 테이블 -->
+      <div id="qheatSection">
+        <div id="qheatTableArea"></div>
+        <div class="sumbar">
+          <div class="si"><div class="si-lbl">Max. (mm/min)</div><div class="si-val" id="qhMax">-</div></div>
+          <div class="si"><div class="si-lbl">Ave. (mm/min)</div><div class="si-val" id="qhAve">-</div></div>
+          <div class="si"><div class="si-lbl">기준 ≤80</div><div class="si-val" id="qhCrit">-</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- STEP 3: 사진 촬영 -->
   <div class="card">
     <div class="card-bd">
@@ -343,15 +399,15 @@ canvas#snapCanvas{display:none;}
         <div>
           <div style="font-size:11px;color:var(--tx2);margin-bottom:4px;font-weight:600;">상태 (State)</div>
           <div style="display:flex;gap:5px;">
-            <button class="vbtn pass" id="qsPass" onclick="setV('state','pass');syncQVerdicts()" style="flex:1;padding:8px;font-size:13px;">합격</button>
-            <button class="vbtn fail" id="qsFail" onclick="setV('state','fail');syncQVerdicts()" style="flex:1;padding:8px;font-size:13px;">불합격</button>
+            <button class="vbtn pass" id="qsPass" onclick="setQV('state','pass')" style="flex:1;padding:8px;font-size:13px;">합격</button>
+            <button class="vbtn fail" id="qsFail" onclick="setQV('state','fail')" style="flex:1;padding:8px;font-size:13px;">불합격</button>
           </div>
         </div>
         <div>
           <div style="font-size:11px;color:var(--tx2);margin-bottom:4px;font-weight:600;">고온방치 (Heat)</div>
           <div style="display:flex;gap:5px;">
-            <button class="vbtn pass" id="qhPass" onclick="setV('heat','pass');syncQVerdicts()" style="flex:1;padding:8px;font-size:13px;">합격</button>
-            <button class="vbtn fail" id="qhFail" onclick="setV('heat','fail');syncQVerdicts()" style="flex:1;padding:8px;font-size:13px;">불합격</button>
+            <button class="vbtn pass" id="qhPass" onclick="setQV('heat','pass')" style="flex:1;padding:8px;font-size:13px;">합격</button>
+            <button class="vbtn fail" id="qhFail" onclick="setQV('heat','fail')" style="flex:1;padding:8px;font-size:13px;">불합격</button>
           </div>
         </div>
       </div>
@@ -514,7 +570,7 @@ canvas#snapCanvas{display:none;}
       </div>
     </div>
 
-    <!-- 상태 -->
+    <!-- 상태 (상세 탭 전용) -->
     <div id="stateSection">
       <div id="stateTableArea"></div>
       <div class="sumbar">
@@ -528,7 +584,7 @@ canvas#snapCanvas{display:none;}
       </div>
     </div>
     <div class="divider"></div>
-    <!-- 고온방치 -->
+    <!-- 고온방치 (상세 탭 전용) -->
     <div id="heatSection">
       <div id="heatTableArea"></div>
       <div class="sumbar">
@@ -678,6 +734,20 @@ let dir  = 'none';
 let activeTypes = {state:true, heat:true};
 let verdicts    = {state:null, heat:null};
 let mdata       = {state:{}, heat:{}};
+
+// 빠른 모드 전용 독립 상태
+let qDir         = 'none';
+let qActiveTypes = {state:true, heat:true};
+let qVerdicts    = {state:null, heat:null};
+let qMdata       = {state:{}, heat:{}};
+let qData        = {
+  accNo: '',
+  state: { MD: [], TD: [] },
+  heat:  { MD: [], TD: [] },
+  dir: 'none',
+  verdicts: { state: null, heat: null }
+};
+
 let photos = [
   {id:'before_state', labelKo:'시험 전 (상태)', labelEn:'Before - State', data:null, caption:''},
   {id:'after_state',  labelKo:'시험 후 (상태)', labelEn:'After - State',  data:null, caption:''},
@@ -691,6 +761,7 @@ try { records = JSON.parse(localStorage.getItem('flamV4')||'[]'); } catch(e){}
 let camStream = null;
 let camFacing = 'environment';
 let currentPhotoIdx = null;
+let currentPhotoFromQuick = false; // 빠른 모드에서 열었는지 여부
 
 // ─── 유틸 함수 (init보다 먼저 정의) ─────────────────────────────────────────
 function today(){ return new Date().toISOString().split('T')[0]; }
@@ -701,6 +772,7 @@ document.getElementById('testDate').value = today();
 document.getElementById('labDate').value  = today();
 renderPhotos();
 renderTables();
+renderQTables();
 renderQPhotos();
 showView('quick'); // 빠른 입력 모드로 시작
 
@@ -735,12 +807,11 @@ function updateQDataPreview(){
   tableArea.innerHTML = '';
   let hasAny = false;
 
-  const dirs = getDirs();
+  const dirs = getQDirs();
   ['state','heat'].forEach(m=>{
     dirs.forEach(d=>{
-      // 항상 _MD / _TD 키 형식 사용
       const key = m + '_' + (d || 'MD');
-      const rows = mdata[m][key] || {};
+      const rows = qMdata[m][key] || {};
       const filled = Object.values(rows).filter(r => r.dist !== '' || r.se);
       if(!filled.length) return;
       hasAny = true;
@@ -830,16 +901,230 @@ function previewAccNo(val){
   }
 }
 
+// ─── 빠른 모드 전용 독립 데이터 ─────────────────────────────────────────────
+// (변수 선언은 최상단 CONSTANTS & STATE 블록에서 완료)
+
+function getQDirs(){ return qDir==='both'?['MD','TD']:(qDir==='none'?['MD']:[qDir]); }
+
+// 빠른 모드 방향 설정 (상세 탭 dir과 분리)
+function setQDir(d, el){
+  qDir = d;
+  document.querySelectorAll('#qDirPills .dp').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  renderQTables();
+}
+
+// 빠른 모드 타입 토글
+function togQType(t){
+  qActiveTypes[t] = !qActiveTypes[t];
+  document.getElementById('qtc'+(t==='state'?'State':'Heat')).classList.toggle('on', qActiveTypes[t]);
+  const sec = document.getElementById('q'+t+'Section');
+  if(sec) sec.style.display = qActiveTypes[t] ? '' : 'none';
+}
+
+// 빠른 모드 측정값 업데이트
+function updQVal(m, key, i, field, val){
+  if(!qMdata[m][key]) qMdata[m][key]={};
+  if(!qMdata[m][key][i]) qMdata[m][key][i]={dist:'',time:'',rate:'',thick:'',se:false};
+  qMdata[m][key][i][field] = val;
+  const d=parseFloat(qMdata[m][key][i].dist), t=parseFloat(qMdata[m][key][i].time);
+  let rate='';
+  if(!isNaN(d)&&!isNaN(t)&&t>0) rate=(d/t*60).toFixed(1);
+  qMdata[m][key][i].rate=rate;
+  const el=document.getElementById('qrc_'+key+'_'+i);
+  if(el) el.textContent=rate||'-';
+  updQSum(m);
+}
+function togQSE(m,key,i){
+  if(!qMdata[m][key]) qMdata[m][key]={};
+  if(!qMdata[m][key][i]) qMdata[m][key][i]={dist:'',time:'',rate:'',se:false};
+  qMdata[m][key][i].se=!qMdata[m][key][i].se;
+  document.getElementById('qse_'+key+'_'+i)?.classList.toggle('on',qMdata[m][key][i].se);
+  updQSum(m);
+}
+function updQSum(m){
+  let rates=[];
+  getQDirs().forEach(d=>{
+    const key=m+(d?'_'+d:'_MD');
+    if(!qMdata[m][key]) return;
+    for(let i=1;i<=N;i++){
+      const r=qMdata[m][key][i];
+      if(r&&!r.se&&r.rate&&!isNaN(parseFloat(r.rate))) rates.push(parseFloat(r.rate));
+    }
+  });
+  const pfx = m==='state'?'qs':'qh';
+  const mxEl=document.getElementById(pfx+'Max'), avEl=document.getElementById(pfx+'Ave'), crEl=document.getElementById(pfx+'Crit');
+  if(!mxEl) return;
+  if(!rates.length){ [mxEl,avEl].forEach(e=>{if(e){e.textContent='-';e.className='si-val';}}); if(crEl){crEl.textContent='-';crEl.className='si-val';} return; }
+  const mx=Math.max(...rates), av=rates.reduce((a,b)=>a+b,0)/rates.length;
+  mxEl.textContent=mx.toFixed(1); avEl.textContent=av.toFixed(1);
+  crEl.textContent=mx<=80?'충족 ✓':'초과 ✗';
+  crEl.className='si-val '+(mx<=80?'ok':'ng');
+  autoQVerdict();
+}
+
+function setQV(m,v){
+  qVerdicts[m]=qVerdicts[m]===v?null:v;
+  syncQVerdicts();
+}
+
+// 빠른 모드 테이블 렌더링 (상세 탭과 완전 독립)
+function renderQTables(){
+  ['state','heat'].forEach(m=>{
+    const area = document.getElementById('q'+m+'TableArea');
+    if(!area) return;
+    area.innerHTML = '';
+    getQDirs().forEach(d=>{
+      const key = m+'_'+(d||'MD');
+      if(!qMdata[m][key]) qMdata[m][key]={};
+      const wrap = document.createElement('div');
+      let th = `<div class="ds-title">${m==='state'?'상태 (State)':'고온방치 (Heat aging)'}`;
+      if(d && d!=='MD' || qDir==='both') th += ` <span class="dir-badge">${d}</span>`;
+      th += `</div>`;
+      const tbl = document.createElement('table');
+      tbl.className = 'mt';
+      tbl.style.marginBottom = '8px';
+      tbl.innerHTML = `<thead><tr>
+        <th style="width:22px">No.</th>
+        <th>거리<br><small>(mm)</small></th>
+        <th>시간<br><small>(s)</small></th>
+        <th>속도<br><small>(mm/min)</small></th>
+        <th>두께<br><small>(mm)</small></th>
+        <th style="width:36px">SE</th>
+      </tr></thead><tbody id="qtb_${key}"></tbody>`;
+      const mtWrap = document.createElement('div');
+      mtWrap.className = 'mt-wrap';
+      mtWrap.appendChild(tbl);
+      wrap.innerHTML = th;
+      wrap.appendChild(mtWrap);
+      area.appendChild(wrap);
+      const tb = document.getElementById('qtb_'+key);
+      for(let i=1;i<=N;i++){
+        const r = qMdata[m][key][i]||{dist:'',time:'',rate:'',thick:'',se:false};
+        const tr = document.createElement('tr');
+        tr.innerHTML=`
+          <td class="row-no">${i}</td>
+          <td><input type="number" min="0" value="${r.dist}" placeholder="0"
+            oninput="updQVal('${m}','${key}',${i},'dist',this.value)"
+            style="width:100%;padding:6px 2px;border:1px solid var(--bd);border-radius:5px;font-size:13px;text-align:center;background:var(--s);color:var(--tx);-webkit-appearance:none;"></td>
+          <td><input type="number" min="0" value="${r.time}" placeholder="0"
+            oninput="updQVal('${m}','${key}',${i},'time',this.value)"
+            style="width:100%;padding:6px 2px;border:1px solid var(--bd);border-radius:5px;font-size:13px;text-align:center;background:var(--s);color:var(--tx);-webkit-appearance:none;"></td>
+          <td><span class="rate-cell" id="qrc_${key}_${i}">${r.rate||'-'}</span></td>
+          <td><input type="number" step="0.1" min="0" value="${r.thick}" placeholder="3.0"
+            oninput="updQVal('${m}','${key}',${i},'thick',this.value)"
+            style="width:100%;padding:6px 2px;border:1px solid var(--bd);border-radius:5px;font-size:13px;text-align:center;background:var(--s);color:var(--tx);-webkit-appearance:none;"></td>
+          <td><button class="se-t${r.se?' on':''}" id="qse_${key}_${i}" onclick="togQSE('${m}','${key}',${i})">SE</button></td>`;
+        tb.appendChild(tr);
+      }
+    });
+  });
+}
+
+// OCR 결과를 qData에도 저장
+function applyToQData(parsed){
+  if(!parsed) return;
+  qData.accNo  = formatAccNo(parsed.accNo || '');
+  qData.state  = parsed.state || { MD: [], TD: [] };
+  qData.heat   = parsed.heat  || { MD: [], TD: [] };
+  qData.dir    = (parsed.dir === 'none' || !parsed.dir) ? 'MD' : parsed.dir;
+
+  // qMdata에도 동기화
+  qDir = qData.dir;
+  const dirs = qDir==='both'?['MD','TD']:['MD'];
+  ['state','heat'].forEach(m=>{
+    dirs.forEach(d=>{
+      const key = m+'_'+d;
+      if(!qMdata[m][key]) qMdata[m][key]={};
+      const rows = qData[m][d] || [];
+      for(let i=0;i<5;i++){
+        const r = rows[i] || {dist:'',time:'',thick:'',se:false};
+        const dist = r.se?'0':(r.dist||'');
+        const time = r.se?'0':(r.time||'');
+        let rate='';
+        if(!r.se && dist && time && parseFloat(time)>0){
+          rate=(parseFloat(dist)/parseFloat(time)*60).toFixed(1);
+        }
+        qMdata[m][key][i+1]={dist, time, thick:r.thick||'', rate, se:r.se||false};
+      }
+    });
+  });
+
+  // 빠른 모드 방향 버튼 동기화
+  const dirIdx = ['none','MD','TD','both'].indexOf(qDir);
+  document.querySelectorAll('#qDirPills .dp').forEach((p,i)=>{
+    p.classList.toggle('on', i===dirIdx);
+  });
+
+  // 자동 판정
+  ['state','heat'].forEach(m=>{
+    let rates = [];
+    let hasSE = false;
+    let hasData = false;
+    dirs.forEach(d=>{
+      (qData[m][d]||[]).forEach(r=>{
+        if(r.se){ hasSE = true; hasData = true; }
+        else if(r.dist && r.time && parseFloat(r.time)>0){
+          rates.push(parseFloat(r.dist)/parseFloat(r.time)*60);
+          hasData = true;
+        } else if(r.dist){ hasData = true; }
+      });
+    });
+    if(!hasData) return;
+    if(!rates.length){
+      qVerdicts[m] = hasSE ? 'pass' : null;
+    } else {
+      qVerdicts[m] = Math.max(...rates) <= 80 ? 'pass' : 'fail';
+    }
+  });
+  syncQVerdicts();
+  renderQTables();
+}
+
 // ─── 빠른 모드 판정 버튼 동기화 ─────────────────────────────────────────────
 function syncQVerdicts(){
   ['state','heat'].forEach(m=>{
     const pfx = m==='state'?'qs':'qh';
-    document.getElementById(pfx+'Pass')?.classList.toggle('on', verdicts[m]==='pass');
-    document.getElementById(pfx+'Fail')?.classList.toggle('on', verdicts[m]==='fail');
+    document.getElementById(pfx+'Pass')?.classList.toggle('on', qVerdicts[m]==='pass');
+    document.getElementById(pfx+'Fail')?.classList.toggle('on', qVerdicts[m]==='fail');
   });
 }
 
-// ─── 자동 합격/불합격 판정 ───────────────────────────────────────────────────
+// ─── 자동 합격/불합격 판정 (빠른 모드 전용) ──────────────────────────────────
+function autoQVerdict(){
+  ['state','heat'].forEach(m=>{
+    if(!qActiveTypes[m]) return;
+    let rates = [];
+    let hasSE = false;
+    let hasData = false;
+    getQDirs().forEach(d=>{
+      const key = m+'_'+(d||'MD');
+      const bucket = qMdata[m][key] || {};
+      for(let i=1;i<=N;i++){
+        const r = bucket[i];
+        if(!r) continue;
+        if(r.se){ hasSE = true; hasData = true; }
+        else if(r.rate && !isNaN(parseFloat(r.rate))){
+          rates.push(parseFloat(r.rate));
+          hasData = true;
+        } else if(r.dist !== undefined && r.dist !== ''){
+          hasData = true;
+        }
+      }
+    });
+    if(!hasData) return;
+    let v;
+    if(!rates.length){
+      v = hasSE ? 'pass' : null;
+    } else {
+      v = Math.max(...rates) <= 80 ? 'pass' : 'fail';
+    }
+    if(v) qVerdicts[m] = v;
+  });
+  syncQVerdicts();
+}
+
+// 상세 탭 autoVerdict는 별도 유지 (상세 탭 전용)
 function autoVerdict(){
   ['state','heat'].forEach(m=>{
     if(!activeTypes[m]) return;
@@ -847,9 +1132,8 @@ function autoVerdict(){
     let hasSE = false;
     let hasData = false;
     getDirs().forEach(d=>{
-      // key는 항상 m_MD 또는 m_TD 형식 (dir='none'일 때도 MD 기준)
       const key = m + (d ? '_'+d : '_MD');
-      const keyAlt = m + (d ? '_'+d : ''); // 구버전 호환
+      const keyAlt = m + (d ? '_'+d : '');
       const bucket = mdata[m][key] || mdata[m][keyAlt] || {};
       for(let i=1;i<=N;i++){
         const r = bucket[i];
@@ -872,58 +1156,11 @@ function autoVerdict(){
     }
     if(v) verdicts[m] = v;
   });
-  syncQVerdicts();
+  // 상세 탭 판정 버튼 업데이트
   ['state','heat'].forEach(m=>{
-    const pfx = m==='state'?'s':'h';
+    const pfx=m==='state'?'s':'h';
     document.getElementById(pfx+'Pass')?.classList.toggle('on', verdicts[m]==='pass');
     document.getElementById(pfx+'Fail')?.classList.toggle('on', verdicts[m]==='fail');
-  });
-}
-
-// ─── 빠른 모드 전용 독립 데이터 ─────────────────────────────────────────────
-// OCR로 인식된 데이터를 빠른 모드 전용으로 별도 보관
-let qData = {
-  accNo: '',
-  state: { MD: [], TD: [] },
-  heat:  { MD: [], TD: [] },
-  dir: 'none',
-  verdicts: { state: null, heat: null }
-};
-
-// OCR 결과를 qData에도 저장
-function applyToQData(parsed){
-  if(!parsed) return;
-  qData.accNo  = formatAccNo(parsed.accNo || '');
-  qData.state  = parsed.state || { MD: [], TD: [] };
-  qData.heat   = parsed.heat  || { MD: [], TD: [] };
-  qData.dir    = (parsed.dir === 'none' || !parsed.dir) ? 'MD' : parsed.dir;
-  // 자동 판정 (SE 포함)
-  ['state','heat'].forEach(m=>{
-    const dirs = qData.dir==='both'?['MD','TD']:['MD'];
-    let rates = [];
-    let hasSE = false;
-    let hasData = false;
-    dirs.forEach(d=>{
-      (qData[m][d]||[]).forEach(r=>{
-        if(r.se){ hasSE = true; hasData = true; }
-        else if(r.dist && r.time && parseFloat(r.time)>0){
-          rates.push(parseFloat(r.dist)/parseFloat(r.time)*60);
-          hasData = true;
-        } else if(r.dist){ hasData = true; }
-      });
-    });
-    if(!hasData) return;
-    if(!rates.length){
-      qData.verdicts[m] = hasSE ? 'pass' : null;
-    } else {
-      qData.verdicts[m] = Math.max(...rates) <= 80 ? 'pass' : 'fail';
-    }
-  });
-  // 빠른 모드 판정 버튼 업데이트
-  ['state','heat'].forEach(m=>{
-    const pfx = m==='state'?'qs':'qh';
-    document.getElementById(pfx+'Pass')?.classList.toggle('on', qData.verdicts[m]==='pass');
-    document.getElementById(pfx+'Fail')?.classList.toggle('on', qData.verdicts[m]==='fail');
   });
 }
 
@@ -933,16 +1170,10 @@ async function quickExport(){
     const rawAccNo = document.getElementById('qAccNo')?.value||'';
     const formatted = formatAccNo(rawAccNo);
     if(!formatted){ toast('❗ 접수번호를 입력해주세요.'); return; }
-    qData.accNo = formatted;
-
-    qData.verdicts.state = document.getElementById('qsPass')?.classList.contains('on') ? 'pass'
-                         : document.getElementById('qsFail')?.classList.contains('on') ? 'fail' : null;
-    qData.verdicts.heat  = document.getElementById('qhPass')?.classList.contains('on') ? 'pass'
-                         : document.getElementById('qhFail')?.classList.contains('on') ? 'fail' : null;
 
     const overlay = document.getElementById('loadingOverlay');
     const ltxt    = document.getElementById('loadingTxt');
-    ltxt.textContent = '분석표 생성 중...';
+    ltxt.textContent = '분석표 생성 중... (10~20초 소요)';
     overlay.classList.remove('hidden');
 
     // 사진 리사이즈
@@ -951,63 +1182,92 @@ async function quickExport(){
       return {...ph, data: await resizeImage(ph.data, 600, 450)};
     }));
 
+    // 체크된 주사항/시험조건 기본값 (빠른 모드용 기본 체크)
     const defaultChecks = {
       cond_state: true, cond_heat: true, note_crit: true, note_se: true, note_5min: true
     };
 
-    // buildXLSX용 data 구조 구성
-    const dirs = qData.dir==='both'?['MD','TD']:[qData.dir||'MD'];
-    // mdata 형식으로 변환
-    const qMdata = {state:{}, heat:{}};
-    ['state','heat'].forEach(m=>{
-      dirs.forEach(d=>{
-        const key = m+'_'+d;
-        qMdata[m][key] = {};
-        const rows = qData[m][d]||[];
-        for(let i=0;i<5;i++){
-          const r = rows[i]||{dist:'',time:'',thick:'',se:false};
-          const dist = r.se?'0':(r.dist||'');
-          const time = r.se?'0':(r.time||'');
-          let rate = '';
-          if(!r.se && dist && time && parseFloat(time)>0)
-            rate = (parseFloat(dist)/parseFloat(time)*60).toFixed(1);
-          qMdata[m][key][i+1] = {dist, time, thick:r.thick||'', rate, se:r.se||false};
-        }
-      });
-    });
+    // 빠른 모드 전용 qMdata에서 시편 데이터 추출
+    const dirs = getQDirs();
+    const padTo5 = arr => { while(arr.length<5) arr.push({dist:'',time:'',thick:'',se:false}); return arr.slice(0,5); };
 
-    const data = {
-      accNo:       formatted,
-      prodName:    '',
-      tester:      '',
-      labDate:     today(),
-      statePeriod: '',
-      heatPeriod:  '',
-      method:      'MS300-08 : Rev.13',
-      equipment:   '',
-      roomTemp:    '( 21 ± 5 ) ℃',
-      roomHumid:   '( 55 ± 5 ) %',
-      lang:        lang,
-      dirs:        dirs,
-      dir:         qData.dir||'MD',
-      activeTypes: {state:true, heat:true},
-      mdata:       qMdata,
-      verdicts:    {
-        state: qData.verdicts.state,
-        heat:  qData.verdicts.heat,
-      },
-      checks:      defaultChecks,
-      thickness:   '',
-      stateThickNote: '',
-      heatThickNote:  '',
-      photos:      processedPhotos,
+    const extractArr = (m, d) => {
+      const key = m+'_'+(d||'MD');
+      const bucket = qMdata[m][key] || {};
+      const arr = [];
+      for(let i=1;i<=5;i++){
+        const r = bucket[i] || {dist:'',time:'',thick:'',se:false};
+        arr.push({ dist: r.se?'0':(r.dist||''), time: r.se?'0':(r.time||''), thick: r.thick||'', se: r.se||false });
+      }
+      return arr;
     };
 
-    const fname = `연소성분석표_${formatted}_${today().replace(/-/g,'')}.xlsx`;
-    buildXLSX(data, fname);
-    overlay.classList.add('hidden');
-    toast('✅ 분석표 다운로드 완료!');
+    const stateArr  = extractArr('state', dirs[0]);
+    const heatArr   = extractArr('heat',  dirs[0]);
+    const stateArr2 = dirs.length>1 ? extractArr('state', dirs[1]) : [];
+    const heatArr2  = dirs.length>1 ? extractArr('heat',  dirs[1]) : [];
 
+    // 판정 읽기 (빠른 모드 전용 qVerdicts 기준)
+    const sv = document.getElementById('qsPass')?.classList.contains('on') ? 'pass'
+             : document.getElementById('qsFail')?.classList.contains('on') ? 'fail' : qVerdicts.state;
+    const hv = document.getElementById('qhPass')?.classList.contains('on') ? 'pass'
+             : document.getElementById('qhFail')?.classList.contains('on') ? 'fail' : qVerdicts.heat;
+    qVerdicts.state = sv;
+    qVerdicts.heat  = hv;
+
+    const payload = {
+      accNo:        formatted,
+      prodName:     '',
+      tester:       '',
+      labDate:      today(),
+      statePeriod:  '',
+      heatPeriod:   '',
+      method:       'MS300-08 : Rev.13',
+      equipment:    '',
+      roomTemp:     '( 21 ± 5 ) ℃',
+      roomHumid:    '( 55 ± 5 ) %',
+      dir:          qDir,
+      dirLabel0:    qDir==='TD' ? '가로\n(Width)' : '세로\n(Length)',
+      dirLabel1:    qDir==='both' ? '가로\n(Width)' : '',
+      state:        stateArr,
+      heat:         heatArr,
+      state2:       stateArr2,
+      heat2:        heatArr2,
+      activeState:  qActiveTypes.state,
+      activeHeat:   qActiveTypes.heat,
+      stateVerdict: sv==='pass' ? '합 격(Pass)'
+                  : sv==='fail' ? '불합격(Fail)' : '합 격(Pass)  /  불합격(Fail)',
+      heatVerdict:  hv==='pass'  ? '합 격(Pass)'
+                  : hv==='fail'  ? '불합격(Fail)' : '합 격(Pass)  /  불합격(Fail)',
+      condKo: buildCondKo(defaultChecks),
+      condEn: buildCondEn(defaultChecks),
+      noteKo: buildNoteKo(defaultChecks),
+      noteEn: buildNoteEn(defaultChecks),
+      remark: '',
+      lang:   lang,
+      photos: processedPhotos,
+    };
+
+    const bodyStr = JSON.stringify(payload);
+    console.log('📦 payload 크기:', (bodyStr.length / 1024).toFixed(1) + ' KB');
+
+    const res  = await fetch(GAS_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body:    bodyStr,
+    });
+    const rawText = await res.text();
+    console.log('📨 GAS 응답 원문:', rawText);
+    let json;
+    try { json = JSON.parse(rawText); }
+    catch(e){ throw new Error('GAS 응답 파싱 실패: ' + rawText.slice(0,200)); }
+    overlay.classList.add('hidden');
+
+    if(json.success && json.url){
+      showDownloadModal(json.url, formatted);
+    } else {
+      throw new Error(json.error || JSON.stringify(json));
+    }
   } catch(err){
     document.getElementById('loadingOverlay').classList.add('hidden');
     toast('❗ 오류: ' + err.message);
@@ -1265,11 +1525,12 @@ function renderPhotos(){
   });
 }
 
-function rmPhoto(i){ photos[i].data=null; photos[i].caption=''; renderPhotos(); }
+function rmPhoto(i){ photos[i].data=null; photos[i].caption=''; renderPhotos(); renderQPhotos(); }
 
 // ─── CAMERA ──────────────────────────────────────────────────────────────────
-async function openCam(idx){
+async function openCam(idx, isQuick){
   currentPhotoIdx = idx;
+  currentPhotoFromQuick = !!isQuick;
   const modal = document.getElementById('camModal');
   const label = lang==='en' ? photos[idx].labelEn : photos[idx].labelKo;
   document.getElementById('camLabel').textContent = label;
@@ -1306,6 +1567,7 @@ function snap(){
   photos[currentPhotoIdx].data = canvas.toDataURL('image/jpeg', 0.85);
   closeCam();
   renderPhotos();
+  renderQPhotos();
   toast(lang==='en'?'Photo captured!':'사진 촬영 완료!');
 }
 
@@ -1318,7 +1580,12 @@ function pickFile(){ document.getElementById('fileInput').click(); }
 function onFile(e){
   const file=e.target.files[0]; if(!file||currentPhotoIdx===null) return;
   const reader=new FileReader();
-  reader.onload=ev=>{ photos[currentPhotoIdx].data=ev.target.result; renderPhotos(); toast(lang==='en'?'Photo added!':'사진 추가 완료!'); };
+  reader.onload=ev=>{
+    photos[currentPhotoIdx].data=ev.target.result;
+    renderPhotos();
+    renderQPhotos();
+    toast(lang==='en'?'Photo added!':'사진 추가 완료!');
+  };
   reader.readAsDataURL(file);
   e.target.value='';
 }
@@ -1479,18 +1746,59 @@ async function exportExcel(){
   const overlay = document.getElementById('loadingOverlay');
   const ltxt    = document.getElementById('loadingTxt');
 
-  if(!g('accNo')){ toast('❗ 접수번호를 입력해주세요.'); return; }
+  // ── 유효성 검사 ────────────────────────────────────────────────────────────
+  if(!g('accNo'))  { toast('❗ 접수번호를 입력해주세요.'); return; }
 
-  ltxt.textContent = '분석표 생성 중...';
+  ltxt.textContent = '분석표 생성 중... (10~20초 소요)';
   overlay.classList.remove('hidden');
 
   try{
-    const raw  = collect();
+    // ── 전송 데이터 구성 ───────────────────────────────────────────────────
+    const raw = collect();
     const dirs = getDirs();
 
+    // 상태조절/고온방치 기간 날짜 조합
     const sfrom = g('statePeriodFrom'), sto = g('statePeriodTo');
     const hfrom = g('heatPeriodFrom'),  hto = g('heatPeriodTo');
     const fmtDate = s => s ? s.replace(/-/g,'.') : '';
+    const statePeriodStr = sfrom||sto ? fmtDate(sfrom)+'~'+fmtDate(sto) : '';
+    const heatPeriodStr  = hfrom||hto ? fmtDate(hfrom)+'~'+fmtDate(hto) : '';
+
+    // 상태(State) 시편 데이터 — 두께 각 행에서 가져오기
+    const stateArr = [];
+    const heatArr  = [];
+    for(let i = 1; i <= 5; i++){
+      const sKey = 'state' + (dirs[0] ? '_'+dirs[0] : '');
+      const hKey = 'heat'  + (dirs[0] ? '_'+dirs[0] : '');
+      const sd = (raw.mdata.state[sKey] || {})[i] || {};
+      const hd = (raw.mdata.heat[hKey]  || {})[i] || {};
+      stateArr.push({ dist: sd.dist||'', time: sd.time||'', thick: sd.thick||'', se: sd.se||false });
+      heatArr.push({  dist: hd.dist||'', time: hd.time||'', thick: hd.thick||'', se: hd.se||false });
+    }
+
+    // 시험조건 / 주사항 텍스트 생성 (체크된 항목만)
+    const checks = raw.checks;
+    const condKo = buildCondKo(checks);
+    const condEn = buildCondEn(checks);
+    const noteKo = buildNoteKo(checks);
+    const noteEn = buildNoteEn(checks);
+
+    // 방향 레이블 (C16, C21용)
+    const dirLabel0 = dirs[0] === 'MD' ? '세로\n(Length)' : dirs[0] === 'TD' ? '가로\n(Width)' : '';
+    const dirLabel1 = dirs[1] === 'TD' ? '가로\n(Width)' : dirs[1] === 'MD' ? '세로\n(Length)' : '';
+
+    // MD+TD 두 번째 방향 데이터
+    const stateArr2 = [], heatArr2 = [];
+    if(dirs.length > 1){
+      for(let i = 1; i <= 5; i++){
+        const sKey2 = 'state_' + dirs[1];
+        const hKey2 = 'heat_'  + dirs[1];
+        const sd2 = (raw.mdata.state[sKey2] || {})[i] || {};
+        const hd2 = (raw.mdata.heat[hKey2]  || {})[i] || {};
+        stateArr2.push({ dist: sd2.dist||'', time: sd2.time||'', thick: sd2.thick||'', se: sd2.se||false });
+        heatArr2.push({  dist: hd2.dist||'', time: hd2.time||'', thick: hd2.thick||'', se: hd2.se||false });
+      }
+    }
 
     // 사진 리사이즈
     const processedPhotos = await Promise.all(raw.photos.map(async ph => {
@@ -1498,34 +1806,60 @@ async function exportExcel(){
       return {...ph, data: await resizeImage(ph.data, 600, 450)};
     }));
 
-    const data = {
-      accNo:       g('accNo'),
-      prodName:    g('prodName'),
-      tester:      g('tester'),
-      labDate:     g('labDate') || g('testDate'),
-      statePeriod: sfrom||sto ? fmtDate(sfrom)+'~'+fmtDate(sto) : '',
-      heatPeriod:  hfrom||hto ? fmtDate(hfrom)+'~'+fmtDate(hto) : '',
-      method:      g('method'),
-      equipment:   g('equipment'),
-      roomTemp:    g('roomTemp'),
-      roomHumid:   g('roomHumid'),
-      lang:        raw.lang,
-      dirs:        dirs,
-      dir:         dir,
-      activeTypes: raw.activeTypes,
-      mdata:       raw.mdata,
-      verdicts:    raw.verdicts,
-      checks:      raw.checks,
-      thickness:   g('stateThickNote'),
-      stateThickNote: g('stateThickNote'),
-      heatThickNote:  g('heatThickNote'),
-      photos:      processedPhotos,
+    const payload = {
+      accNo:         g('accNo'),
+      prodName:      g('prodName'),
+      tester:        g('tester'),
+      labDate:       g('labDate') || g('testDate'),
+      statePeriod:   statePeriodStr,
+      heatPeriod:    heatPeriodStr,
+      method:        g('method'),
+      equipment:     g('equipment'),
+      roomTemp:      g('roomTemp'),
+      roomHumid:     g('roomHumid'),
+      dir:           dir,
+      dirLabel0:     dirLabel0,
+      dirLabel1:     dirLabel1,
+      state:         stateArr,
+      heat:          heatArr,
+      state2:        stateArr2,
+      heat2:         heatArr2,
+      activeState:   raw.activeTypes.state,
+      activeHeat:    raw.activeTypes.heat,
+      stateVerdict:  verdicts.state === 'pass' ? '합 격(Pass)' :
+                     verdicts.state === 'fail' ? '불합격(Fail)' : '합 격(Pass)  /  불합격(Fail)',
+      heatVerdict:   verdicts.heat  === 'pass' ? '합 격(Pass)' :
+                     verdicts.heat  === 'fail' ? '불합격(Fail)' : '합 격(Pass)  /  불합격(Fail)',
+      condKo, condEn,
+      noteKo, noteEn,
+      remark:        g('stateThickNote') ?
+                     `상태 시험편 두께 : ${g('stateThickNote')} mm / Heat aging : ${g('heatThickNote')||g('stateThickNote')} mm` : '',
+      lang:          raw.lang,
+      photos:        processedPhotos,
     };
 
-    const fname = `연소성분석표_${g('accNo')}_${today().replace(/-/g,'')}.xlsx`;
-    buildXLSX(data, fname);
+    // ── GAS 호출 ───────────────────────────────────────────────────────────
+    const bodyStr2 = JSON.stringify(payload);
+    console.log('📦 payload 크기:', (bodyStr2.length / 1024).toFixed(1) + ' KB');
+
+    const res  = await fetch(GAS_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body:    bodyStr2,
+    });
+    const rawText2 = await res.text();
+    console.log('📨 GAS 응답 원문:', rawText2);
+    let json;
+    try { json = JSON.parse(rawText2); }
+    catch(e){ throw new Error('GAS 응답 파싱 실패: ' + rawText2.slice(0,200)); }
+
     overlay.classList.add('hidden');
-    toast('✅ 분석표 다운로드 완료!');
+
+    if(json.success && json.url){
+      showDownloadModal(json.url, g('accNo'));
+    } else {
+      throw new Error(json.error || JSON.stringify(json));
+    }
 
   } catch(err){
     overlay.classList.add('hidden');
@@ -2114,10 +2448,9 @@ function applyOcrResult(){
   if(!ocrParsed) return;
   const data = ocrParsed;
 
-  // 접수번호 자동 입력 (항상 덮어씀)
+  // 접수번호 자동 입력 (빠른 모드 필드에만)
   if(data.accNo){
     const formatted = formatAccNo(data.accNo);
-    document.getElementById('accNo').value = formatted;
     const qField = document.getElementById('qAccNo');
     if(qField){
       qField.value = formatted;
@@ -2125,45 +2458,17 @@ function applyOcrResult(){
     }
   }
 
-  // 방향 설정 - "both"이면 MD+TD, 아니면 dir 그대로
-  const dirVal = data.dir || 'MD';
-  const dirMap = {'none':0,'MD':1,'TD':2,'both':3};
-  const dpIdx  = dirMap[dirVal] ?? 1;
-  dir = dirVal === 'none' ? 'MD' : dirVal; // none은 MD로 처리
-  document.querySelectorAll('.dp').forEach((p,i)=>p.classList.toggle('on', i===dpIdx));
+  // 빠른 모드 전용 qData / qMdata에 적용
+  applyToQData(ocrParsed);
 
-  // mdata에 데이터 채우기
-  const dirs = dir==='both' ? ['MD','TD'] : [dir];
-  ['state','heat'].forEach(m=>{
-    dirs.forEach(d=>{
-      const key  = m + '_' + d;
-      const rows = data[m]?.[d] || [];
-      if(!mdata[m][key]) mdata[m][key] = {};
-      for(let i=0; i<5; i++){
-        const r = rows[i] || {dist:'', time:'', thick:'', se:false};
-        mdata[m][key][i+1] = {
-          dist:  r.se ? '0' : (r.dist  || ''),
-          time:  r.se ? '0' : (r.time  || ''),
-          thick: r.thick || '',
-          rate:  '',
-          se:    r.se || false
-        };
-        // 연소속도 계산
-        if(!r.se && r.dist && r.time && parseFloat(r.time)>0){
-          mdata[m][key][i+1].rate = (parseFloat(r.dist)/parseFloat(r.time)*60).toFixed(1);
-        }
-      }
-    });
-  });
+  // qDataPreview 표시
+  const preview = document.getElementById('qDataPreview');
+  if(preview) preview.style.display = '';
+  updateQDataPreview();
 
   closeOcrResult();
-  renderTables();
   renderQPhotos();
-  // 빠른 모드 전용 데이터에도 저장
-  applyToQData(ocrParsed);
-  // 자동 합격/불합격 판정
-  autoVerdict();
-  updateQDataPreview();
+  autoQVerdict();
   toast('✅ 데이터 자동 입력 완료!');
 }
 

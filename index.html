@@ -4,6 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>연소성 시험 분석표</title>
+
+<!-- PWA 설정 -->
+<meta name="application-name" content="연소성 분석표">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="연소성 분석표">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1117">
+<meta name="description" content="자동차 내장재 연소성 시험 분석표 자동화">
+
+<!-- manifest 인라인 (별도 파일 불필요) -->
+<link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22%EC%97%B0%EC%86%8C%EC%84%B1%20%EC%8B%9C%ED%97%98%20%EB%B6%84%EC%84%9D%ED%91%9C%22%2C%22short_name%22%3A%22%EC%97%B0%EC%86%8C%EC%84%B1%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f1117%22%2C%22theme_color%22%3A%22%230f1117%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%3D%2527http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%2527%2520viewBox%3D%25270%25200%2520192%2520192%2527%253E%253Crect%2520width%3D%2527192%2527%2520height%3D%2527192%2527%2520rx%3D%252732%2527%2520fill%3D%2527%25230f1117%2527%2F%253E%253Ctext%2520x%3D%252796%2527%2520y%3D%2527125%2527%2520font-size%3D%2527110%2527%2520text-anchor%3D%2527middle%2527%2520fill%3D%2527%2523c9a84c%2527%253E%25F0%259F%2594%25A5%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+
+<!-- iOS 홈 화면 아이콘 (SVG 인라인) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%230f1117'/><rect x='20' y='20' width='140' height='140' rx='24' fill='%23161820'/><text x='90' y='115' font-size='80' text-anchor='middle' fill='%23c9a84c' font-family='serif'>F</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230f1117'/><text x='16' y='23' font-size='18' text-anchor='middle' fill='%23c9a84c' font-family='serif' font-weight='bold'>F</text></svg>">
 <style>
 :root {
   /* ── 컬러 팔레트 ── */
@@ -3048,5 +3064,40 @@ function toast(msg){
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
+<!-- PWA Service Worker 인라인 등록 -->
+<script>
+if('serviceWorker' in navigator){
+  // SW 코드를 Blob으로 만들어 등록 (별도 파일 불필요)
+  const swCode = `
+    const CACHE = 'flamV1';
+    const ASSETS = ['./', './index.html'];
+    self.addEventListener('install', e => {
+      e.waitUntil(
+        caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
+      );
+    });
+    self.addEventListener('activate', e => {
+      e.waitUntil(
+        caches.keys().then(keys =>
+          Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+        ).then(() => self.clients.claim())
+      );
+    });
+    self.addEventListener('fetch', e => {
+      // GAS, CDN 등 외부 요청은 네트워크 우선
+      if(!e.request.url.startsWith(self.location.origin)){
+        return;
+      }
+      e.respondWith(
+        fetch(e.request).catch(() => caches.match(e.request))
+      );
+    });
+  `;
+  const blob = new Blob([swCode], {type:'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(()=>{});
+}
+</script>
 </body>
 </html>

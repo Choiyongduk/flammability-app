@@ -425,7 +425,7 @@ canvas#snapCanvas{display:none;}
   <button onclick="quickShareKakao()" style="
     flex:1;padding:13px;background:#FEE500;color:#3A1D1D;border:none;
     border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;
-  ">📊 엑셀로 저장</button>
+  ">📤 공유하기</button>
   <button onclick="quickExport()" style="
     flex:1;padding:13px;background:var(--gr);color:#fff;border:none;
     border-radius:var(--rs);font-size:15px;font-weight:700;cursor:pointer;
@@ -1998,7 +1998,7 @@ function showDownloadModal(url, accNo){
   modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
 }
 
-// ─── 빠른 모드 카카오 전송 = 심플 xlsx 생성 ─────────────────────────────────
+// ─── 빠른 모드 공유하기 = ExcelJS로 xlsx 생성 후 Web Share ──────────────────
 async function quickShareKakao(){
   const rawAccNo = document.getElementById('qAccNo')?.value||'';
   const accNo = formatAccNo(rawAccNo) || '분석표';
@@ -2009,48 +2009,144 @@ async function quickShareKakao(){
   overlay.classList.remove('hidden');
 
   try {
-    const wb = XLSX.utils.book_new();
-
-    // ── Sheet1: 심플 데이터표 ─────────────────────────────────────────────
-    const ws1rows = buildQuickSheet1(accNo);
-    const ws1 = XLSX.utils.aoa_to_sheet(ws1rows);
-    ws1['!cols'] = [{wch:6},{wch:14},{wch:14},{wch:16},{wch:14},{wch:8}];
-    // 셀 스타일 (헤더 행 굵게) — xlsx.full.min.js는 스타일 미지원이므로 생략
-    XLSX.utils.book_append_sheet(wb, ws1, '연소성');
-
-    // ── Sheet2: 사진 (base64 이미지 삽입) ────────────────────────────────
-    const ws2rows = [
-      ['연소성 시험 사진'],
-      [`접수번호: ${accNo}`, '', `시험일: ${today()}`],
-      [],
-    ];
-    const hasAnyPhoto = photos.some(p=>p.data);
-    if(!hasAnyPhoto){
-      ws2rows.push(['(첨부 사진 없음)']);
-    } else {
-      photos.forEach(p=>{
-        ws2rows.push([p.labelKo, p.data ? '(사진 첨부됨)' : '(없음)']);
-      });
+    // ExcelJS 로드 확인
+    if(typeof ExcelJS === 'undefined'){
+      throw new Error('ExcelJS 라이브러리 로드 실패. 잠시 후 다시 시도해주세요.');
     }
-    const ws2 = XLSX.utils.aoa_to_sheet(ws2rows);
-    ws2['!cols'] = [{wch:20},{wch:20},{wch:20}];
-    XLSX.utils.book_append_sheet(wb, ws2, '사진');
 
-    // ── 다운로드 ──────────────────────────────────────────────────────────
-    const fname = `연소성_${accNo}_${today()}.xlsx`;
-    XLSX.writeFile(wb, fname);
+    const wb = new ExcelJS.Workbook();
+    wb.creator = '연소성 분석표';
+    wb.created = new Date();
+
+    // ── Sheet1: 심플 데이터표 ───────────────────────────────────────────────
+    const ws1 = wb.addWorksheet('연소성');
+    ws1.columns = [
+      {width:6},{width:14},{width:14},{width:16},{width:14},{width:8}
+    ];
+
+    const sheet1rows = buildQuickSheet1(accNo);
+    sheet1rows.forEach((rowData, ri) => {
+      const row = ws1.addRow(rowData);
+      // 제목 행 (0번째) 굵게
+      if(ri === 0){
+        row.font = {bold:true, size:13};
+      }
+      // 헤더 행 (No./거리/시간...) 배경색
+      if(rowData[0]==='No.'){
+        row.eachCell(cell=>{
+          cell.font = {bold:true};
+          cell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFD9E1F2'}};
+          cell.alignment = {horizontal:'center'};
+        });
+      }
+      // 속도 셀 컬러 (4번째 컬럼, 숫자인 경우)
+      if(typeof rowData[3] === 'number'){
+        const cell = row.getCell(4);
+        cell.font = {bold:true, color:{argb: rowData[3]<=80?'FF1F7A45':'FFCC0000'}};
+        cell.alignment = {horizontal:'center'};
+      }
+    });
+
+    // ── Sheet2: 사진 ────────────────────────────────────────────────────────
+    const ws2 = wb.addWorksheet('사진');
+    ws2.columns = [{width:20},{width:5},{width:45}];
+
+    // 헤더
+    const titleRow = ws2.addRow(['연소성 시험 사진']);
+    titleRow.font = {bold:true, size:13};
+    ws2.addRow([`접수번호: ${accNo}`, '', `시험일: ${today()}`]);
+    ws2.addRow([]);
+
+    const hasAnyPhoto = photos.some(p=>p.data);
+
+    if(!hasAnyPhoto){
+      ws2.addRow(['(첨부 사진 없음)']);
+    } else {
+      let currentRow = 4; // 헤더 3행 + 빈 행 1
+      for(let pi=0; pi<photos.length; pi++){
+        const p = photos[pi];
+        // 라벨 행
+        const labelRow = ws2.addRow([p.labelKo]);
+        labelRow.font = {bold:true};
+        currentRow++;
+
+        if(p.data){
+          // base64 → ArrayBuffer
+          const b64 = p.data.startsWith('data:') ? p.data.split(',')[1] : p.data;
+          const bin = atob(b64);
+          const arr = new Uint8Array(bin.length);
+          for(let j=0;j<bin.length;j++) arr[j]=bin.charCodeAt(j);
+
+          const imgId = wb.addImage({
+            buffer: arr.buffer,
+            extension: 'jpeg',
+          });
+
+          // 이미지 삽입 (C열에 맞게, 약 15행 높이)
+          ws2.addImage(imgId, {
+            tl: { col: 2, row: currentRow - 1 },
+            ext: { width: 320, height: 240 }
+          });
+
+          // 이미지 높이만큼 행 추가 (약 18행)
+          for(let k=0;k<18;k++){
+            ws2.addRow([]);
+            currentRow++;
+          }
+          ws2.addRow([]);
+          currentRow++;
+        } else {
+          ws2.addRow(['(사진 없음)']);
+          currentRow++;
+        }
+      }
+    }
+
+    // ── ArrayBuffer로 변환 후 Blob 생성 ────────────────────────────────────
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob   = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    const fname  = `연소성_${accNo}_${today()}.xlsx`;
 
     overlay.classList.add('hidden');
-    toast('📊 엑셀 저장 완료! 카카오톡에서 파일로 전송하세요.');
 
-    // 사진도 있으면 안내 모달
-    if(hasAnyPhoto) showQuickPhotoModal();
+    // ── Web Share API로 공유 (카카오톡 등 직접 선택) ────────────────────────
+    if(navigator.canShare && navigator.canShare({files:[new File([blob], fname)]})){
+      try{
+        await navigator.share({
+          title: `연소성 분석표 — ${accNo}`,
+          text:  `시험일: ${today()}`,
+          files: [new File([blob], fname, {type: blob.type})]
+        });
+        toast('✅ 공유 완료!');
+      } catch(shareErr){
+        if(shareErr.name !== 'AbortError'){
+          // 공유 취소가 아닌 오류면 다운로드로 fallback
+          _downloadBlob(blob, fname);
+        }
+      }
+    } else {
+      // Web Share 미지원 기기 — 다운로드
+      _downloadBlob(blob, fname);
+      toast('📊 엑셀 저장 완료! 카카오톡에서 파일로 전송하세요.');
+    }
 
   } catch(err){
     overlay.classList.add('hidden');
     toast('❗ 오류: ' + err.message);
     console.error(err);
   }
+}
+
+function _downloadBlob(blob, fname){
+  const url = URL.createObjectURL(blob);
+  const a   = document.createElement('a');
+  a.href = url; a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
 }
 
 // 심플 Sheet1 데이터 빌드 (사진처럼 깔끔하게)
@@ -2110,34 +2206,6 @@ function buildQuickSheet1(accNo){
   return rows;
 }
 
-// 사진 다운로드 안내 모달
-function showQuickPhotoModal(){
-  document.getElementById('quickPhotoModal')?.remove();
-  const modal = document.createElement('div');
-  modal.id = 'quickPhotoModal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;';
-
-  const photoCount = photos.filter(p=>p.data).length;
-  modal.innerHTML = `
-    <div style="background:var(--s);border-radius:var(--r);padding:22px;width:100%;max-width:360px;">
-      <div style="font-size:15px;font-weight:700;margin-bottom:6px;">📊 엑셀 저장 완료</div>
-      <div style="font-size:12px;color:var(--tx3);margin-bottom:16px;">
-        시험 사진 ${photoCount}장을 저장하면 카카오톡으로 함께 전송할 수 있어요.
-      </div>
-      <button onclick="downloadKakaoPhotos();document.getElementById('quickPhotoModal').remove();" style="
-        width:100%;padding:12px;background:var(--ac);color:#fff;border:none;
-        border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;">
-        📷 사진 ${photoCount}장 저장
-      </button>
-      <button onclick="document.getElementById('quickPhotoModal').remove();" style="
-        width:100%;padding:10px;background:var(--s2);border:1px solid var(--bd);
-        border-radius:var(--rs);font-size:13px;cursor:pointer;color:var(--tx2);">
-        닫기
-      </button>
-    </div>`;
-  document.body.appendChild(modal);
-  modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
-}
 
 function downloadKakaoPhotos(){
   let downloaded = 0;
@@ -2680,5 +2748,6 @@ function toast(msg){
 }
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 </body>
 </html>

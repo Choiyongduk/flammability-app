@@ -1408,14 +1408,6 @@ async function quickExport(){
     ltxt.textContent = '분석표 생성 중... (10~20초 소요)';
     overlay.classList.remove('hidden');
 
-    // 사진 리사이즈 (GAS payload 크기 제한 대비 400x300으로 축소)
-    const processedPhotos = await Promise.all(photos.map(async ph=>{
-      if(!ph.data) return {...ph, data: null};
-      const resized = await resizeImage(ph.data, 400, 300);
-      // base64 prefix 제거 (GAS에서 순수 base64만 처리)
-      return {...ph, data: resized.split(',')[1] || ''};
-    }));
-
     // 체크된 주사항/시험조건 기본값 (빠른 모드용 기본 체크)
     const defaultChecks = {
       cond_state: true, cond_heat: true, note_crit: true, note_se: true, note_5min: true
@@ -1479,7 +1471,6 @@ async function quickExport(){
       noteEn: buildNoteEn(defaultChecks),
       remark: '',
       lang:   lang,
-      photos: processedPhotos,
     };
 
     const bodyStr = JSON.stringify(payload);
@@ -1986,12 +1977,8 @@ async function exportExcel(){
       }
     }
 
-    // 사진 리사이즈 (GAS payload 제한 대비 — 300x225로 축소)
-    const processedPhotos = await Promise.all(raw.photos.map(async ph => {
-      if(!ph.data) return {...ph, data: null};
-      const resized = await resizeImage(ph.data, 300, 225);
-      return {...ph, data: resized.split(',')[1] || ''};
-    }));
+    // 사진은 GAS에서 처리하지 않으므로 payload에서 제외
+    // (사진 포함 시 payload 크기가 커져 GAS 인프라 에러 발생)
 
     const payload = {
       accNo:         g('accNo'),
@@ -2019,9 +2006,8 @@ async function exportExcel(){
                      verdicts.heat  === 'fail' ? '불합격(Fail)' : '합 격(Pass)  /  불합격(Fail)',
       condKo, condEn,
       noteKo, noteEn,
-      remark:        '',
-      lang:          raw.lang,
-      photos:        processedPhotos,
+      remark: '',
+      lang:   raw.lang,
     };
 
     // ── GAS 호출 ───────────────────────────────────────────────────────────

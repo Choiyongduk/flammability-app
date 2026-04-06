@@ -2034,10 +2034,10 @@ async function exportExcel(){
       body:    bodyStr2,
     });
     const rawText2 = await res.text();
-    console.log('📨 GAS 응답 원문:', rawText2);
+    console.log('GAS 응답 원문:', rawText2);
     let json;
     try { json = JSON.parse(rawText2); }
-    catch(e){ throw new Error('GAS 응답 파싱 실패: ' + rawText2.slice(0,200)); }
+    catch(e){ throw new Error('GAS 응답 파싱 실패:\n' + rawText2.slice(0,500)); }
 
     overlay.classList.add('hidden');
 
@@ -2050,8 +2050,30 @@ async function exportExcel(){
   } catch(err){
     overlay.classList.add('hidden');
     console.error(err);
-    toast('오류: ' + err.message);
+    // 에러 상세 모달 — 내용 전체 표시
+    showErrorModal(err.message);
   }
+}
+
+function showErrorModal(msg){
+  document.getElementById('gasErrModal')?.remove();
+  const m = document.createElement('div');
+  m.id = 'gasErrModal';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;';
+  m.innerHTML = `
+    <div style="background:var(--s);border:1px solid var(--bd);border-radius:var(--r);padding:22px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto;">
+      <div style="font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--rdt);margin-bottom:12px;">서버 오류 상세</div>
+      <pre style="font-size:11px;color:var(--tx2);white-space:pre-wrap;word-break:break-all;background:var(--bg2);padding:12px;border-radius:var(--rs);border:1px solid var(--bd);max-height:300px;overflow-y:auto;">${msg.replace(/</g,'&lt;')}</pre>
+      <div style="font-size:11px;color:var(--tx3);margin-top:10px;">이 내용을 캡처해서 개발자에게 전달해주세요.</div>
+      <button onclick="document.getElementById('gasErrModal').remove()" style="
+        margin-top:14px;width:100%;padding:10px;
+        background:var(--s2);border:1px solid var(--bd);border-radius:var(--rs);
+        font-size:12px;font-weight:600;letter-spacing:.5px;cursor:pointer;color:var(--tx2);">
+        닫기
+      </button>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click', e=>{ if(e.target===m) m.remove(); });
 }
 
 // ── 체크 항목 → 텍스트 변환 (체크된 항목만) ──────────────────────────────────

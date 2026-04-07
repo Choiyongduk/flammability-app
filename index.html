@@ -64,14 +64,20 @@
 }
 
 /* ── RESET ── */
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+*{
+  box-sizing:border-box;margin:0;padding:0;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation; /* 안드로이드 300ms 터치 딜레이 제거 */
+}
 body{
   background:var(--bg);
   font-family:'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;
   font-size:var(--fs-base);
   color:var(--tx);
   min-height:100vh;
+  min-height:-webkit-fill-available; /* iOS Safari 주소창 대응 */
   overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
 }
 
 /* ── HEADER ── */
@@ -117,6 +123,9 @@ body{
   background:var(--s2);color:var(--tx2);
   display:inline-flex;align-items:center;gap:5px;
   white-space:nowrap;transition:all .18s;
+  touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;
+  min-height:44px; /* 안드로이드 최소 터치 영역 */
 }
 .btn:active{opacity:.8;transform:scale(.98);}
 .btn-pr{background:var(--ac);color:#fff;border-color:var(--ac);}
@@ -124,7 +133,7 @@ body{
   background:linear-gradient(135deg,#1a6e47,#145c3b);
   color:#fff;border-color:var(--gr);
 }
-.btn-sm{padding:5px 10px;font-size:11px;}
+.btn-sm{padding:5px 10px;font-size:11px;min-height:36px;}
 
 /* ── NAV ── */
 .nav{
@@ -139,6 +148,9 @@ body{
   font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;
   color:var(--tx3);border-bottom:2px solid transparent;
   cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .18s;
+  touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;
+  min-height:44px;display:flex;align-items:center;
 }
 .nav-tab.on{color:var(--gold);border-bottom-color:var(--gold);}
 
@@ -292,6 +304,9 @@ body{
   font-size:13px;font-weight:700;letter-spacing:.5px;
   cursor:pointer;background:var(--s2);color:var(--tx3);
   min-width:0;transition:all .18s;
+  touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;
+  min-height:48px;
 }
 .vbtn.pass.on{
   background:var(--grl);border-color:var(--grt);color:var(--grt);
@@ -313,6 +328,8 @@ body{
   border:1px solid var(--bd);border-radius:var(--rs);
   cursor:pointer;background:var(--bg2);
   transition:all .15s;
+  touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;
 }
 .ci:active{opacity:.8;}
 .ci.on{background:var(--goldl);border-color:var(--goldb);}
@@ -387,7 +404,9 @@ canvas#snapCanvas{display:none;}
 .footer{
   position:fixed;bottom:0;left:0;right:0;
   background:var(--s);border-top:1px solid var(--bd);
-  padding:10px 14px;display:flex;gap:7px;z-index:100;
+  padding:10px 14px;display:flex;gap:7px;z-index:150;
+  /* 안드로이드 safe area 대응 */
+  padding-bottom:max(10px, env(safe-area-inset-bottom));
 }
 
 /* ── TOAST ── */
@@ -641,7 +660,7 @@ canvas#snapCanvas{display:none;}
 </div>
 
 <!-- 빠른 입력 전용 sticky footer — quickView 안에 위치 -->
-<div id="quickFooter" style="position:fixed;bottom:0;left:0;right:0;background:var(--s);border-top:1px solid var(--bd);padding:10px 14px;display:flex;gap:7px;z-index:100;">
+<div id="quickFooter" style="position:fixed;bottom:0;left:0;right:0;background:var(--s);border-top:1px solid var(--bd);padding:10px 14px;padding-bottom:max(10px, env(safe-area-inset-bottom));display:flex;gap:7px;z-index:150;">
   <button onclick="quickShareKakao()" style="
     flex:1;padding:13px;
     background:var(--goldl);color:var(--gold2);
@@ -1518,16 +1537,21 @@ async function quickExport(){
 
 // ─── VIEWS ───────────────────────────────────────────────────────────────────
 function showView(v){
-  document.getElementById('quickView').classList.toggle('hidden', v!=='quick');
-  document.getElementById('formView').classList.toggle('hidden', v!=='form');
-  document.getElementById('nQuick').classList.toggle('on', v==='quick');
-  document.getElementById('nForm').classList.toggle('on', v==='form');
+  const quickView   = document.getElementById('quickView');
+  const formView    = document.getElementById('formView');
+  const qf          = document.getElementById('quickFooter');
+  const ff          = document.querySelector('.footer');
 
-  // footer 전환 — position:fixed이므로 display로만 제어
-  const qf = document.getElementById('quickFooter');
-  const ff = document.querySelector('.footer');
-  if(qf) qf.style.display = v==='quick' ? 'flex' : 'none';
-  if(ff) ff.style.display = v==='form'  ? 'flex' : 'none';
+  // hidden 클래스 토글
+  quickView.classList.toggle('hidden', v!=='quick');
+  formView.classList.toggle('hidden',  v!=='form');
+
+  document.getElementById('nQuick').classList.toggle('on', v==='quick');
+  document.getElementById('nForm').classList.toggle('on',  v==='form');
+
+  // footer — display:none으로 완전 제거 (안드로이드에서 겹침 방지)
+  if(qf){ qf.style.display = v==='quick' ? 'flex' : 'none'; qf.style.visibility = v==='quick' ? '' : 'hidden'; }
+  if(ff){ ff.style.display = v==='form'  ? 'flex' : 'none'; ff.style.visibility = v==='form'  ? '' : 'hidden'; }
 
   if(v==='quick') renderQPhotos();
 }
